@@ -1,0 +1,287 @@
+@import "tailwindcss";
+
+/* ─── SolverX Brand Design System (Exabytes Malaysia Aligned) ───────── */
+:root {
+  --color-primary: #002244;
+  /* Exabytes Deep Navy — header, typography, primary brand anchors */
+  --color-primary-50: #f0f4f8;
+  --color-primary-100: #d9e2ec;
+  --color-primary-600: #1a365d;
+  --color-primary-700: #0f2d59;
+  --color-accent: #0066ff;
+  /* Exabytes Electric Blue — primary actions, interactive elements */
+  --color-accent-50: #eef5ff;
+  --color-accent-100: #d0e4ff;
+  --color-accent-700: #0052cc;
+  --color-cyan: #00c2ff;
+  --color-surface: #ffffff;
+  --color-container: #f8fafc;
+  /* crisp slate-50 background */
+  --color-text: #0b1f33;
+  --color-text-secondary: #475569;
+  --color-muted: #94a3b8;
+  --color-border: #e2e8f0;
+  --color-success: #059669;
+  --color-success-50: #ecfdf5;
+  --color-warning: #d97706;
+  --color-warning-50: #fffbeb;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+/* ─── Tailwind v4 theme registration ──────────────────────────────────── */
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-surface: var(--color-surface);
+  --color-container: var(--color-container);
+  --color-accent: var(--color-accent);
+  --color-text: var(--color-text);
+  --color-muted: var(--color-muted);
+  --color-border: var(--color-border);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Base ────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f6f8fc;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.011em;
+  background-image:
+    radial-gradient(at 50% -50px, rgba(0, 102, 255, 0.18) 0px, transparent 600px),
+    radial-gradient(at 100% 0px, rgba(0, 194, 255, 0.12) 0px, transparent 450px),
+    radial-gradient(at 0% 300px, rgba(0, 34, 68, 0.08) 0px, transparent 500px);
+  background-repeat: no-repeat;
+  background-size: 100% 900px;
+}
+
+/* Crisp grid dot pattern for Exabytes enterprise aesthetic */
+.bg-grid-pattern {
+  background-size: 24px 24px;
+  background-image:
+    radial-gradient(circle, rgba(0, 102, 255, 0.12) 1px, transparent 1px);
+}
+
+/* Hero ambient spotlight glow */
+.hero-glow {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  max-width: 1280px;
+  height: 600px;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    rgba(0, 102, 255, 0.22) 0%,
+    rgba(0, 194, 255, 0.14) 35%,
+    rgba(240, 244, 248, 0) 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(44px);
+}
+
+/* ─── Card ────────────────────────────────────────────────────────────── */
+.card {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 1px 3px 0 rgb(0 34 68 / 0.04), 0 4px 12px 0 rgb(0 34 68 / 0.03);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -6px rgb(0 34 68 / 0.10), 0 4px 12px -2px rgb(0 102, 255, 0.06);
+  border-color: rgba(0, 102, 255, 0.35);
+}
+
+/* ─── Primary CTA button ─────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  background-color: var(--color-accent);
+  color: #fff;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent-700);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Legacy alias for old btn-cta references */
+.btn-cta {
+  composes: btn-primary;
+}
+
+/* ─── Secondary / outline button ─────────────────────────────────────── */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-container);
+  border-color: var(--color-primary-100);
+}
+
+/* ─── Label / Tag ─────────────────────────────────────────────────────── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  background-color: var(--color-accent-50);
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent-100);
+}
+
+.tag-success {
+  background-color: var(--color-success-50);
+  color: var(--color-success);
+  border-color: #a7f3d0;
+}
+
+.tag-warning {
+  background-color: var(--color-warning-50);
+  color: var(--color-warning);
+  border-color: #fde68a;
+}
+
+/* Legacy alias */
+.badge-highlight {
+  composes: tag;
+}
+
+/* ─── Spinner (replaces bouncing dots) ───────────────────────────────── */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin-slow 0.7s linear infinite;
+}
+
+/* ─── Progress bar ───────────────────────────────────────────────────── */
+.progress-track {
+  height: 3px;
+  background-color: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--color-accent);
+  transition: width 300ms ease;
+  border-radius: 2px;
+}
+
+/* ─── Form inputs ────────────────────────────────────────────────────── */
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.08);
+}
+
+.input::placeholder {
+  color: var(--color-muted);
+}
+
+/* ─── Print ──────────────────────────────────────────────────────────── */
+@media print {
+  @page {
+    margin: 10mm 12mm;
+    size: A4 portrait;
+  }
+
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .card {
+    box-shadow: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
