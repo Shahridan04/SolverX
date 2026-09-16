@@ -413,8 +413,10 @@ ${JSON.stringify(catalogContext, null, 2)}
 REQUIREMENTS:
 1. Select the top 2-3 most relevant Exabytes products from the catalog that directly solve the SME's bottleneck.
 2. For each product, write a personalized "whyThisFitsYou" explanation (1-2 sentences) directly mentioning their industry (${payload.industry}) and situation.
-3. Identify the Top 3 to 5 evidence-based business pain points/problems in their current setup (matching Exabytes Step 4 format, e.g. Too much manual work, No CRM, Customer enquiries handled manually, Unmeasurable marketing, No internal knowledge management).
+3. Identify the Top 3 to 5 evidence-based business pain points/problems in their current setup (e.g. Too much manual work, No CRM, Customer enquiries handled manually, Unmeasurable marketing, No internal knowledge management).
 4. Provide a 3-step immediate action plan.
+5. Rate Digital Maturity across 6 dimensions on a 1-5 star scale (1=very weak/absent, 2=basic, 3=moderate, 4=good, 5=advanced/strong) based strictly on the SME profile tools and bottlenecks provided. Be realistic — a business with only WhatsApp and spreadsheets should score 1-2 on most dimensions.
+6. Rate AI Readiness across 5 dimensions on a 1-5 scale (1=not ready, 2=low readiness, 3=moderate, 4=ready, 5=highly ready) based on team size, leadership context implied by bottlenecks, and current tools. Be conservative and evidence-based.
 
 Respond ONLY with valid JSON matching this schema:
 {
@@ -428,10 +430,10 @@ Respond ONLY with valid JSON matching this schema:
   ],
   "immediateActionPlan": ["Step 1", "Step 2", "Step 3"],
   "maturityCategories": {
-    "website": 1, "cloud": 1, "crm": 1, "marketing": 1, "cybersecurity": 1, "aiAdoption": 1
+    "website": 2, "cloud": 1, "crm": 1, "marketing": 2, "cybersecurity": 1, "aiAdoption": 1
   },
   "aiReadiness": {
-    "leadership": 1, "dataAvailability": 1, "employeeSkills": 1, "digitalWorkflow": 1, "processMaturity": 1
+    "leadership": 2, "dataAvailability": 1, "employeeSkills": 2, "digitalWorkflow": 1, "processMaturity": 2
   }
 }`;
 

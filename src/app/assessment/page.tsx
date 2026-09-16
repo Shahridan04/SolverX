@@ -7,6 +7,12 @@ import type { DynamicFollowUpResult, DiagnosisReport } from "@/lib/gemini/engine
 
 type FlowStep = "questions" | "ai_probing" | "follow_up" | "ai_diagnosing" | "report";
 
+// Module-level constant — stable across renders, safe for Reset Default button reference
+const DEFAULT_CONSULTANT_NOTES =
+  `• SME qualifies for up to 50% MDEC SME Digitalization Co-Funding Grant on Exabytes cloud licenses.
+• Immediate Priority: Consolidate high-volume customer inquiries off personal WhatsApp onto an automated Exabytes workspace.
+• Target 90-day milestone: Deploy centralized cloud storage & custom business email to protect enterprise quotation credibility.`;
+
 export default function AssessmentPage() {
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [flowStep, setFlowStep] = useState<FlowStep>("questions");
@@ -43,11 +49,8 @@ export default function AssessmentPage() {
   const [interactiveAdoptionRate, setInteractiveAdoptionRate] = useState<number>(80);
   const [isSharedView, setIsSharedView] = useState<boolean>(false);
 
-  // Consultant Notes (Bonus 3 Proposal Requirement)
-  const defaultConsultantNotes = `• SME qualifies for up to 50% MDEC SME Digitalization Co-Funding Grant on Exabytes cloud licenses.
-• Immediate Priority: Consolidate high-volume customer inquiries off personal WhatsApp onto an automated Exabytes workspace.
-• Target 90-day milestone: Deploy centralized cloud storage & custom business email to protect enterprise quotation credibility.`;
-  const [consultantNotes, setConsultantNotes] = useState<string>(defaultConsultantNotes);
+  // Consultant Notes (Bonus 3 PDF Proposal)
+  const [consultantNotes, setConsultantNotes] = useState<string>(DEFAULT_CONSULTANT_NOTES);
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
 
   // Lead form
@@ -1035,22 +1038,22 @@ export default function AssessmentPage() {
                     </p>
                   </div>
 
-                  {/* Step 4: Business Pain Point Analysis (Exact match to Challenge Step 4) */}
+                  {/* Business Pain Point Analysis */}
                   <div className="mt-8 border-t border-slate-100 pt-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
-                            Step 4 · Evidence-Based Audit
+                            Evidence-Based Pain Point Analysis
                           </span>
-                          <span className="text-[11px] text-slate-400 font-semibold">Exabytes Challenge Standard</span>
+                          <span className="text-[11px] text-slate-400 font-semibold">AI-Diagnosed Operational Gaps</span>
                         </div>
                         <h4 className="text-base font-bold text-[#002244] mt-1">
                           Top {report.keyGaps.length} Operational Pain Points
                         </h4>
                       </div>
                       <span className="text-[11px] text-slate-500 font-medium bg-slate-100 px-2.5 py-1 rounded-full w-fit">
-                        Evidence-based analysis for {answers.industry}
+                        Diagnosed for {answers.industry}
                       </span>
                     </div>
 
@@ -1454,7 +1457,7 @@ export default function AssessmentPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setConsultantNotes(defaultConsultantNotes)}
+                      onClick={() => setConsultantNotes(DEFAULT_CONSULTANT_NOTES)}
                       className="text-[11px] font-medium text-slate-500 hover:text-slate-800 underline ml-auto"
                     >
                       Reset Default
