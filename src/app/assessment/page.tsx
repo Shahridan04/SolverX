@@ -43,6 +43,13 @@ export default function AssessmentPage() {
   const [interactiveAdoptionRate, setInteractiveAdoptionRate] = useState<number>(80);
   const [isSharedView, setIsSharedView] = useState<boolean>(false);
 
+  // Consultant Notes (Bonus 3 Proposal Requirement)
+  const defaultConsultantNotes = `• SME qualifies for up to 50% MDEC SME Digitalization Co-Funding Grant on Exabytes cloud licenses.
+• Immediate Priority: Consolidate high-volume customer inquiries off personal WhatsApp onto an automated Exabytes workspace.
+• Target 90-day milestone: Deploy centralized cloud storage & custom business email to protect enterprise quotation credibility.`;
+  const [consultantNotes, setConsultantNotes] = useState<string>(defaultConsultantNotes);
+  const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
+
   // Lead form
   const [leadForm, setLeadForm] = useState({ name: "", email: "", company: "" });
   const [leadSaved, setLeadSaved] = useState(false);
@@ -69,6 +76,8 @@ export default function AssessmentPage() {
           recommendedProducts: parsed.r.rp,
           roiEstimate: parsed.r.roi,
           immediateActionPlan: parsed.r.ap,
+          maturityCategories: parsed.r.mc || { website: 1, cloud: 1, crm: 1, marketing: 1, cybersecurity: 1, aiAdoption: 1 },
+          aiReadiness: parsed.r.air || { leadership: 1, dataAvailability: 1, employeeSkills: 1, digitalWorkflow: 1, processMaturity: 1 },
           isAiGenerated: true,
         });
         setAnswers({
@@ -80,6 +89,9 @@ export default function AssessmentPage() {
         });
         if (parsed.a.c) {
           setLeadForm((prev) => ({ ...prev, company: parsed.a.c }));
+        }
+        if (parsed.r.cn) {
+          setConsultantNotes(parsed.r.cn);
         }
         setIsSharedView(true);
         setFlowStep("report");
@@ -255,6 +267,9 @@ export default function AssessmentPage() {
           rp: report.recommendedProducts,
           roi: report.roiEstimate,
           ap: report.immediateActionPlan,
+          mc: report.maturityCategories,
+          air: report.aiReadiness,
+          cn: consultantNotes,
         },
         a: {
           i: answers.industry,
@@ -777,6 +792,80 @@ export default function AssessmentPage() {
         {flowStep === "report" && report && (
           <div className="space-y-8">
             
+            {/* ─── Executive Actions & PDF Proposal Toolbar (Screen Mode) ─ */}
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs print:hidden">
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 text-[11px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                  Live Digital Blueprint Ready
+                </span>
+                <span className="text-[12px] text-slate-400 hidden sm:inline">·</span>
+                <span className="text-[12px] text-slate-600 font-medium hidden sm:inline">
+                  Generated for {leadForm.company || answers.industry}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyShareLink}
+                  className={`btn-secondary !text-xs !py-1.5 !px-3 font-semibold flex items-center gap-1.5 transition-all shadow-2xs ${
+                    copiedLink ? "!bg-emerald-50 !text-emerald-800 !border-emerald-300" : ""
+                  }`}
+                >
+                  {copiedLink ? (
+                    <>
+                      <span className="text-emerald-600 font-bold">✓</span>
+                      <span>Link Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                      </svg>
+                      <span>Share Diagnosis</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="btn-primary !text-xs !py-1.5 !px-3.5 font-bold flex items-center gap-1.5 shadow-2xs"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  <span>Download PDF Proposal</span>
+                </button>
+              </div>
+            </div>
+
+            {/* ─── Print-Only Proposal Header (Bonus 3: Exabytes Proposal Standard) ─ */}
+            <div className="hidden print:block pb-5 mb-5 border-b-2 border-[#002244]">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-[#002244] text-white flex items-center justify-center font-black text-xs">
+                      X
+                    </div>
+                    <span className="text-xl font-black text-[#002244] tracking-tight">EXABYTES MALAYSIA</span>
+                  </div>
+                  <p className="text-[12px] font-bold text-blue-700 mt-1 uppercase tracking-wider">
+                    Official AI SME Digital Growth Blueprint &amp; Proposal
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    Prepared for: <strong className="text-slate-900">{leadForm.company || `${answers.industry} SME`}</strong> · Sector: {answers.industry}
+                  </p>
+                </div>
+                <div className="text-right text-[11px] text-slate-500">
+                  <p className="font-bold text-slate-800">Proposal Ref: EXA-AI-{report.maturityScore}M</p>
+                  <p>Generated: {new Date().toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  <p className="text-emerald-700 font-semibold">MDEC SME Grant Eligible</p>
+                </div>
+              </div>
+            </div>
+
             {/* ─── Shared Report Notice Banner ───────────────────────── */}
             {isSharedView && (
               <div className="p-4 rounded-2xl bg-blue-50/95 border border-blue-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-blue-900">
@@ -894,6 +983,34 @@ export default function AssessmentPage() {
                   <span>100 (Fully Automated AI Cloud)</span>
                 </div>
               </div>
+
+              {/* NEW: Per-Category Maturity Breakdown */}
+              {report.maturityCategories && (
+                <div className="pt-6 mt-6 border-t border-slate-200">
+                  <h4 className="text-[12px] font-bold text-slate-700 uppercase tracking-wider mb-4">
+                    Dimension Breakdown
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {Object.entries(report.maturityCategories).map(([key, value]) => {
+                      const labelMap: Record<string, string> = {
+                        website: "Website",
+                        cloud: "Cloud",
+                        crm: "CRM",
+                        marketing: "Marketing",
+                        cybersecurity: "Cybersecurity",
+                        aiAdoption: "AI Adoption",
+                      };
+                      const stars = Array(5).fill(0).map((_, i) => (i < (value as number) ? "★" : "☆")).join("");
+                      return (
+                        <div key={key} className="flex flex-col gap-1">
+                          <span className="text-[12px] font-semibold text-slate-900">{labelMap[key]}</span>
+                          <span className="text-[14px] text-yellow-500 tracking-widest">{stars}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* ─── 2-Column Dashboard Grid ────────────────────────────── */}
@@ -918,21 +1035,98 @@ export default function AssessmentPage() {
                     </p>
                   </div>
 
-                  <h4 className="text-[12px] font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <span className="text-red-500 font-bold">⚠</span> Critical Bottlenecks Identified
-                  </h4>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {report.keyGaps.map((gap, i) => (
-                      <div
-                        key={i}
-                        className="p-3 rounded-lg bg-red-50/60 border border-red-200/80 text-[12.5px] text-slate-800 flex items-start gap-2.5 shadow-2xs"
-                      >
-                        <span className="text-red-500 mt-0.5 shrink-0 font-bold">✕</span>
-                        <span className="font-medium">{gap}</span>
+                  {/* Step 4: Business Pain Point Analysis (Exact match to Challenge Step 4) */}
+                  <div className="mt-8 border-t border-slate-100 pt-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                            Step 4 · Evidence-Based Audit
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-semibold">Exabytes Challenge Standard</span>
+                        </div>
+                        <h4 className="text-base font-bold text-[#002244] mt-1">
+                          Top {report.keyGaps.length} Operational Pain Points
+                        </h4>
                       </div>
-                    ))}
+                      <span className="text-[11px] text-slate-500 font-medium bg-slate-100 px-2.5 py-1 rounded-full w-fit">
+                        Evidence-based analysis for {answers.industry}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {report.keyGaps.map((gap, i) => (
+                        <div
+                          key={i}
+                          className="p-3.5 rounded-xl bg-gradient-to-r from-slate-50 to-white border border-slate-200/80 hover:border-blue-300 hover:shadow-xs transition-all flex items-start gap-3.5 group"
+                        >
+                          <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                            <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-300 flex items-center justify-center text-[11px] font-black">
+                              ✓
+                            </span>
+                            <span className="text-[11px] font-bold text-slate-400 w-4 text-center">
+                              {i + 1}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] text-slate-800 font-medium leading-snug">
+                              {gap}
+                            </p>
+                          </div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-50 text-rose-600 border border-rose-100 shrink-0 hidden sm:inline-block">
+                            Bottleneck #{i + 1}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
+
+                {/* NEW: AI Readiness Score Panel */}
+                {report.aiReadiness && (
+                  <div className="card p-6 sm:p-7 bg-white border border-slate-200/90 shadow-sm rounded-2xl">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+                      <div>
+                        <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider block">
+                          AI Horizon Challenge
+                        </span>
+                        <h3 className="text-lg font-bold text-[#002244]">
+                          AI Readiness Score
+                        </h3>
+                        <p className="text-[12.5px] text-slate-500 mt-0.5">
+                          Evaluation of your foundational capability to deploy AI effectively.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {Object.entries(report.aiReadiness).map(([key, value]) => {
+                        const labelMap: Record<string, string> = {
+                          leadership: "Leadership Alignment",
+                          dataAvailability: "Data Availability",
+                          employeeSkills: "Employee Skills",
+                          digitalWorkflow: "Digital Workflow",
+                          processMaturity: "Process Maturity",
+                        };
+                        const percentage = ((value as number) / 5) * 100;
+                        return (
+                          <div key={key}>
+                            <div className="flex justify-between items-center text-[12px] mb-1">
+                              <span className="font-semibold text-slate-700">{labelMap[key]}</span>
+                              <span className="text-slate-500 font-medium">{value}/5</span>
+                            </div>
+                            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* 2. Interactive Sequential 90-Day Transformation Roadmap (Zero Duplication) */}
                 <div className="card p-6 sm:p-7 bg-white border border-slate-200/90 shadow-sm rounded-2xl">
@@ -1201,6 +1395,111 @@ export default function AssessmentPage() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                {/* 5. Consultant Notes & Strategic Advisory (Bonus 3 Proposal Requirement) */}
+                <div id="consultant-notes" className="card p-6 sm:p-7 bg-white border border-slate-200/90 shadow-sm rounded-2xl">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold uppercase tracking-wider">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                          Bonus 3 · PDF Proposal Feature
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-semibold">Exabytes Certified Advisor</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-[#002244] mt-1">
+                        Executive Consultant Notes &amp; Advisory Strategy
+                      </h3>
+                      <p className="text-[12.5px] text-slate-500">
+                        Tailored strategic notes to guide your sales advisor meeting or MDEC grant application.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 print:hidden">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingNotes(!isEditingNotes)}
+                        className="btn-secondary !text-xs !py-1.5 !px-3 font-semibold flex items-center gap-1.5"
+                      >
+                        {isEditingNotes ? "Done Editing ✓" : "Edit Notes ✏️"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Preset quick buttons for rapid consultant note entry (hidden in print) */}
+                  <div className="mb-3 flex flex-wrap items-center gap-2 print:hidden">
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Quick Add:</span>
+                    <button
+                      type="button"
+                      onClick={() => setConsultantNotes((prev) => prev + "\n• Approved for 50% MDEC SME Digitalization Co-Funding Grant matching on cloud setup.")}
+                      className="text-[11px] font-medium text-blue-700 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-md transition-colors"
+                    >
+                      + MDEC Grant Match
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConsultantNotes((prev) => prev + "\n• Urgently migrate customer chats from personal WhatsApp to Lark/Freshchat to prevent lead loss.")}
+                      className="text-[11px] font-medium text-blue-700 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-md transition-colors"
+                    >
+                      + WhatsApp SLA Fix
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConsultantNotes((prev) => prev + "\n• 14-day onboarding recommended for Phase 1 quick wins (Business Email & Cloud Backup).")}
+                      className="text-[11px] font-medium text-blue-700 bg-blue-50/80 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-md transition-colors"
+                    >
+                      + 14-Day Pilot Plan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConsultantNotes(defaultConsultantNotes)}
+                      className="text-[11px] font-medium text-slate-500 hover:text-slate-800 underline ml-auto"
+                    >
+                      Reset Default
+                    </button>
+                  </div>
+
+                  {/* Screen Edit Mode vs Display Mode */}
+                  {isEditingNotes ? (
+                    <div className="space-y-2 print:hidden">
+                      <textarea
+                        value={consultantNotes}
+                        onChange={(e) => setConsultantNotes(e.target.value)}
+                        rows={5}
+                        className="w-full text-[13px] text-slate-800 p-3.5 rounded-xl border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none leading-relaxed font-sans"
+                        placeholder="Add custom consultant advice, grant references, or implementation caveats..."
+                      />
+                      <div className="flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Notes automatically update in the PDF export and share link.</span>
+                        <span>{consultantNotes.length} chars</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => setIsEditingNotes(true)}
+                      className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 cursor-pointer hover:border-blue-300 transition-colors group relative print:hidden"
+                      title="Click to edit consultant notes"
+                    >
+                      <p className="text-[13px] text-slate-800 whitespace-pre-wrap leading-relaxed">
+                        {consultantNotes}
+                      </p>
+                      <span className="absolute bottom-2 right-3 text-[10px] text-slate-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                        Click anywhere to edit ✏️
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Print Document View (Always clean and visible during PDF print) */}
+                  <div className="hidden print:block p-4 rounded-xl border-l-4 border-l-blue-600 bg-slate-50 text-[12.5px] text-slate-800">
+                    <p className="whitespace-pre-wrap leading-relaxed font-sans">
+                      {consultantNotes}
+                    </p>
+                    <div className="mt-4 pt-3 border-t border-slate-200 flex justify-between items-center text-[11px] text-slate-500">
+                      <span>Verified: Exabytes SME Digital Growth Advisory</span>
+                      <span>Status: Official Client Proposal Ready</span>
+                    </div>
                   </div>
                 </div>
               </div>

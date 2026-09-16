@@ -43,6 +43,21 @@ export interface DiagnosisReport {
     calculationFormula: string;
   } | null;
   immediateActionPlan: string[];
+  maturityCategories: {
+    website: number;
+    cloud: number;
+    crm: number;
+    marketing: number;
+    cybersecurity: number;
+    aiAdoption: number;
+  };
+  aiReadiness: {
+    leadership: number;
+    dataAvailability: number;
+    employeeSkills: number;
+    digitalWorkflow: number;
+    processMaturity: number;
+  };
   isAiGenerated: boolean;
 }
 
@@ -336,9 +351,11 @@ export async function generateDiagnosisReport(payload: AssessmentPayload): Promi
     maturityTier,
     summary: `Your ${payload.industry.toUpperCase()} business is currently in the ${maturityTier} stage. By addressing manual operational friction and unifying your digital channels, your team can unlock significant productivity and revenue gains.`,
     keyGaps: [
-      `Reliance on manual workflows creates bottlenecks as order volumes grow.`,
-      `Communication and customer inquiries are fragmented across personal tools.`,
-      `Lack of unified business systems limits customer conversion rates.`,
+      `Too much manual work across day-to-day operations and administrative bottlenecks.`,
+      `Customer enquiries handled manually on personal WhatsApp with no centralized CRM.`,
+      `Marketing campaigns and lead acquisition funnels are not measurable or automated.`,
+      `Fragmented internal team workflows and absence of shared cloud knowledge repository.`,
+      `No business-grade domain email causing lost client trust and elevated cyber risk.`,
     ],
     recommendedProducts: fallbackProducts,
     roiEstimate,
@@ -347,6 +364,21 @@ export async function generateDiagnosisReport(payload: AssessmentPayload): Promi
       `Automate repetitive WhatsApp inquiries with dedicated agent routing.`,
       `Consolidate customer data into a central tracking pipeline.`,
     ],
+    maturityCategories: {
+      website: 3,
+      cloud: 2,
+      crm: 1,
+      marketing: 2,
+      cybersecurity: 2,
+      aiAdoption: 1,
+    },
+    aiReadiness: {
+      leadership: 3,
+      dataAvailability: 2,
+      employeeSkills: 2,
+      digitalWorkflow: 1,
+      processMaturity: 2,
+    },
     isAiGenerated: false,
   };
 
@@ -381,20 +413,26 @@ ${JSON.stringify(catalogContext, null, 2)}
 REQUIREMENTS:
 1. Select the top 2-3 most relevant Exabytes products from the catalog that directly solve the SME's bottleneck.
 2. For each product, write a personalized "whyThisFitsYou" explanation (1-2 sentences) directly mentioning their industry (${payload.industry}) and situation.
-3. Identify 3 specific digital gaps in their current setup.
+3. Identify the Top 3 to 5 evidence-based business pain points/problems in their current setup (matching Exabytes Step 4 format, e.g. Too much manual work, No CRM, Customer enquiries handled manually, Unmeasurable marketing, No internal knowledge management).
 4. Provide a 3-step immediate action plan.
 
 Respond ONLY with valid JSON matching this schema:
 {
   "summary": "2-3 sentence executive diagnosis of their digital maturity and primary growth opportunity",
-  "keyGaps": ["Specific gap 1", "Specific gap 2", "Specific gap 3"],
+  "keyGaps": ["Top problem 1", "Top problem 2", "Top problem 3", "Top problem 4", "Top problem 5"],
   "recommendedProductIds": [
     {
       "id": "exact_catalog_product_id",
       "whyThisFitsYou": "Personalized 1-2 sentence rationale tailored to their business"
     }
   ],
-  "immediateActionPlan": ["Step 1", "Step 2", "Step 3"]
+  "immediateActionPlan": ["Step 1", "Step 2", "Step 3"],
+  "maturityCategories": {
+    "website": 1, "cloud": 1, "crm": 1, "marketing": 1, "cybersecurity": 1, "aiAdoption": 1
+  },
+  "aiReadiness": {
+    "leadership": 1, "dataAvailability": 1, "employeeSkills": 1, "digitalWorkflow": 1, "processMaturity": 1
+  }
 }`;
 
     const aiCall = async () => {
@@ -416,11 +454,19 @@ Respond ONLY with valid JSON matching this schema:
       const obj = parsed as Record<string, unknown>;
       const summary = typeof obj.summary === "string" ? obj.summary : fallbackReport.summary;
       const keyGaps = Array.isArray(obj.keyGaps)
-        ? (obj.keyGaps as string[]).slice(0, 3)
+        ? (obj.keyGaps as string[]).slice(0, 5)
         : fallbackReport.keyGaps;
       const immediateActionPlan = Array.isArray(obj.immediateActionPlan)
         ? (obj.immediateActionPlan as string[]).slice(0, 3)
         : fallbackReport.immediateActionPlan;
+
+      const maturityCategories = (typeof obj.maturityCategories === "object" && obj.maturityCategories !== null)
+        ? (obj.maturityCategories as DiagnosisReport["maturityCategories"])
+        : fallbackReport.maturityCategories;
+
+      const aiReadiness = (typeof obj.aiReadiness === "object" && obj.aiReadiness !== null)
+        ? (obj.aiReadiness as DiagnosisReport["aiReadiness"])
+        : fallbackReport.aiReadiness;
 
       let aiProducts: DiagnosisReport["recommendedProducts"] = [];
 
@@ -465,6 +511,8 @@ Respond ONLY with valid JSON matching this schema:
         recommendedProducts: aiProducts,
         roiEstimate,
         immediateActionPlan,
+        maturityCategories,
+        aiReadiness,
         isAiGenerated: true,
       };
     };
