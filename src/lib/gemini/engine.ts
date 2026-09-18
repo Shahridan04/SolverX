@@ -413,10 +413,22 @@ ${JSON.stringify(catalogContext, null, 2)}
 REQUIREMENTS:
 1. Select the top 2-3 most relevant Exabytes products from the catalog that directly solve the SME's bottleneck.
 2. For each product, write a personalized "whyThisFitsYou" explanation (1-2 sentences) directly mentioning their industry (${payload.industry}) and situation.
-3. Identify the Top 3 to 5 evidence-based business pain points/problems in their current setup (e.g. Too much manual work, No CRM, Customer enquiries handled manually, Unmeasurable marketing, No internal knowledge management).
+3. Identify the Top 3 to 5 evidence-based business pain points/problems in their current setup (matching typical SME bottlenecks, e.g. Too much manual work, No CRM, Customer enquiries handled manually, Unmeasurable marketing, No internal knowledge management).
 4. Provide a 3-step immediate action plan.
-5. Rate Digital Maturity across 6 dimensions on a 1-5 star scale (1=very weak/absent, 2=basic, 3=moderate, 4=good, 5=advanced/strong) based strictly on the SME profile tools and bottlenecks provided. Be realistic — a business with only WhatsApp and spreadsheets should score 1-2 on most dimensions.
-6. Rate AI Readiness across 5 dimensions on a 1-5 scale (1=not ready, 2=low readiness, 3=moderate, 4=ready, 5=highly ready) based on team size, leadership context implied by bottlenecks, and current tools. Be conservative and evidence-based.
+5. Score Digital Maturity Categories (website, cloud, crm, marketing, cybersecurity, aiAdoption) on a strict 1 to 5 integer scale:
+   - 1 = Nascent / None (completely manual, consumer chat or no digital footprint)
+   - 2 = Basic (ad-hoc tools, siloed spreadsheets)
+   - 3 = Developing (standard SaaS/cloud adopted, partial integration)
+   - 4 = Competent (centralized systems, structured digital workflows)
+   - 5 = Mature (enterprise cloud, automated workflows, industry leader)
+   Every category MUST be an integer between 1 and 5.
+6. Score AI Readiness Dimensions (leadership, dataAvailability, employeeSkills, digitalWorkflow, processMaturity) on a strict 1 to 5 integer scale:
+   - 1 = Nascent (unstructured data, manual paperwork/WhatsApp, no automation)
+   - 2 = Exploring (interest exists, spreadsheets available, limited tech skills)
+   - 3 = Operational (clear goals, cloud documents, receptive team)
+   - 4 = Advanced (data-driven decisions, structured SaaS APIs in place)
+   - 5 = Transformative (AI-ready structured datasets, high digital agility)
+   Every dimension MUST be an integer between 1 and 5.
 
 Respond ONLY with valid JSON matching this schema:
 {
@@ -430,10 +442,10 @@ Respond ONLY with valid JSON matching this schema:
   ],
   "immediateActionPlan": ["Step 1", "Step 2", "Step 3"],
   "maturityCategories": {
-    "website": 2, "cloud": 1, "crm": 1, "marketing": 2, "cybersecurity": 1, "aiAdoption": 1
+    "website": 3, "cloud": 2, "crm": 1, "marketing": 2, "cybersecurity": 2, "aiAdoption": 1
   },
   "aiReadiness": {
-    "leadership": 2, "dataAvailability": 1, "employeeSkills": 2, "digitalWorkflow": 1, "processMaturity": 2
+    "leadership": 3, "dataAvailability": 2, "employeeSkills": 2, "digitalWorkflow": 1, "processMaturity": 2
   }
 }`;
 
@@ -462,13 +474,34 @@ Respond ONLY with valid JSON matching this schema:
         ? (obj.immediateActionPlan as string[]).slice(0, 3)
         : fallbackReport.immediateActionPlan;
 
-      const maturityCategories = (typeof obj.maturityCategories === "object" && obj.maturityCategories !== null)
-        ? (obj.maturityCategories as DiagnosisReport["maturityCategories"])
-        : fallbackReport.maturityCategories;
+      const clampScore = (val: unknown, fallback: number): number => {
+        const num = typeof val === "number" ? Math.round(val) : parseInt(String(val), 10);
+        if (isNaN(num)) return fallback;
+        return Math.min(5, Math.max(1, num));
+      };
 
-      const aiReadiness = (typeof obj.aiReadiness === "object" && obj.aiReadiness !== null)
-        ? (obj.aiReadiness as DiagnosisReport["aiReadiness"])
-        : fallbackReport.aiReadiness;
+      const rawMaturity = (typeof obj.maturityCategories === "object" && obj.maturityCategories !== null)
+        ? (obj.maturityCategories as Record<string, unknown>)
+        : {};
+      const maturityCategories: DiagnosisReport["maturityCategories"] = {
+        website: clampScore(rawMaturity.website, fallbackReport.maturityCategories?.website ?? 3),
+        cloud: clampScore(rawMaturity.cloud, fallbackReport.maturityCategories?.cloud ?? 2),
+        crm: clampScore(rawMaturity.crm, fallbackReport.maturityCategories?.crm ?? 1),
+        marketing: clampScore(rawMaturity.marketing, fallbackReport.maturityCategories?.marketing ?? 2),
+        cybersecurity: clampScore(rawMaturity.cybersecurity, fallbackReport.maturityCategories?.cybersecurity ?? 2),
+        aiAdoption: clampScore(rawMaturity.aiAdoption, fallbackReport.maturityCategories?.aiAdoption ?? 1),
+      };
+
+      const rawReadiness = (typeof obj.aiReadiness === "object" && obj.aiReadiness !== null)
+        ? (obj.aiReadiness as Record<string, unknown>)
+        : {};
+      const aiReadiness: DiagnosisReport["aiReadiness"] = {
+        leadership: clampScore(rawReadiness.leadership, fallbackReport.aiReadiness?.leadership ?? 3),
+        dataAvailability: clampScore(rawReadiness.dataAvailability, fallbackReport.aiReadiness?.dataAvailability ?? 2),
+        employeeSkills: clampScore(rawReadiness.employeeSkills, fallbackReport.aiReadiness?.employeeSkills ?? 2),
+        digitalWorkflow: clampScore(rawReadiness.digitalWorkflow, fallbackReport.aiReadiness?.digitalWorkflow ?? 1),
+        processMaturity: clampScore(rawReadiness.processMaturity, fallbackReport.aiReadiness?.processMaturity ?? 2),
+      };
 
       let aiProducts: DiagnosisReport["recommendedProducts"] = [];
 

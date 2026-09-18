@@ -197,5 +197,18 @@ export const EXABYTES_CATALOG: ExabytesProduct[] = [
     features: ["High-Speed NVMe Storage", "Dedicated CPU & RAM", "Full Root Access", "99.9% Network SLA"],
     productUrl: "https://www.exabytes.my/servers/nvme-vps",
     targetScenarios: ["website_presence"]
+  },
+  {
+    id: "ai-website-builder",
+    name: "Exabytes AI Website Builder",
+    category: "hosting",
+    tagline: "Launch a Professional Business Website in Under 10 Minutes — Zero Coding Required",
+    description: "Malaysia's fastest AI-powered website builder for SMEs. Answer a few prompts, and the AI generates a complete, mobile-optimised company website with built-in SEO, booking forms, and WhatsApp integration — ready to publish instantly.",
+    idealFor: "Non-technical SME owners who need a professional web presence fast without hiring a web developer.",
+    startingPrice: "RM 9.99/mo",
+    features: ["AI-Generated Website Layout", "Mobile-Responsive Design", "Built-in SEO Optimizer", "WhatsApp & Booking Integration", "Free .my Domain (1st Year)", "SSL Certificate Included"],
+    productUrl: "https://www.exabytes.my/website-builder",
+    targetScenarios: ["website_presence"]
   }
 ];
+

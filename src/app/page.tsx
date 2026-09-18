@@ -144,7 +144,12 @@ export default function HomePage() {
             </span>
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+          {/* Official Challenge Tagline */}
+          <p className="mt-4 text-[15px] sm:text-base font-semibold text-blue-700 tracking-wide">
+            &quot;Helping SMEs Discover Their Next Digital Step&quot;
+          </p>
+
+          <p className="mt-4 text-base sm:text-lg md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
             Stop guessing which software your business needs. In just 3 minutes, SolverX diagnoses your digital bottlenecks, calculates your projected ROI in Ringgit, and delivers an execution-ready Exabytes solution roadmap.
           </p>
 
@@ -389,7 +394,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="font-bold text-slate-900 text-base mb-2">{cs.business}</h3>
                 <p className="text-[13px] text-slate-600 leading-relaxed italic mb-6">
-                  "{cs.quote}"
+                  &quot;{cs.quote}&quot;
                 </p>
               </div>
 
@@ -410,7 +415,7 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto rounded-2xl bg-gradient-to-r from-[#002244] via-[#0B2545] to-[#0052CC] p-10 sm:p-14 text-center text-white shadow-xl relative overflow-hidden">
           <div className="relative z-10 max-w-2xl mx-auto">
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-              Ready to Accelerate Your SME's Growth?
+              Ready to Accelerate Your SME&apos;s Growth?
             </h2>
             <p className="mt-4 text-blue-100 text-base sm:text-lg leading-relaxed">
               Take the 3-minute assessment now. Unlock your customized digital maturity score, projected ringgit savings, and actionable Exabytes roadmap.

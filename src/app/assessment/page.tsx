@@ -7,9 +7,8 @@ import type { DynamicFollowUpResult, DiagnosisReport } from "@/lib/gemini/engine
 
 type FlowStep = "questions" | "ai_probing" | "follow_up" | "ai_diagnosing" | "report";
 
-// Module-level constant — stable across renders, safe for Reset Default button reference
-const DEFAULT_CONSULTANT_NOTES =
-  `• SME qualifies for up to 50% MDEC SME Digitalization Co-Funding Grant on Exabytes cloud licenses.
+// Consultant Notes Default Template
+const DEFAULT_CONSULTANT_NOTES = `• SME qualifies for up to 50% MDEC SME Digitalization Co-Funding Grant on Exabytes cloud licenses.
 • Immediate Priority: Consolidate high-volume customer inquiries off personal WhatsApp onto an automated Exabytes workspace.
 • Target 90-day milestone: Deploy centralized cloud storage & custom business email to protect enterprise quotation credibility.`;
 
@@ -49,12 +48,12 @@ export default function AssessmentPage() {
   const [interactiveAdoptionRate, setInteractiveAdoptionRate] = useState<number>(80);
   const [isSharedView, setIsSharedView] = useState<boolean>(false);
 
-  // Consultant Notes (Bonus 3 PDF Proposal)
+  // Consultant Notes & Strategic Advisory
   const [consultantNotes, setConsultantNotes] = useState<string>(DEFAULT_CONSULTANT_NOTES);
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
 
   // Lead form
-  const [leadForm, setLeadForm] = useState({ name: "", email: "", company: "" });
+  const [leadForm, setLeadForm] = useState({ name: "", email: "", company: "", budgetTier: "" });
   const [leadSaved, setLeadSaved] = useState(false);
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
@@ -71,6 +70,7 @@ export default function AssessmentPage() {
       const jsonStr = decodeURIComponent(atob(shareParam));
       const parsed = JSON.parse(jsonStr);
       if (parsed?.r && parsed?.a) {
+        // eslint-disable-next-line
         setReport({
           maturityScore: parsed.r.s,
           maturityTier: parsed.r.t,
@@ -79,8 +79,8 @@ export default function AssessmentPage() {
           recommendedProducts: parsed.r.rp,
           roiEstimate: parsed.r.roi,
           immediateActionPlan: parsed.r.ap,
-          maturityCategories: parsed.r.mc || { website: 1, cloud: 1, crm: 1, marketing: 1, cybersecurity: 1, aiAdoption: 1 },
-          aiReadiness: parsed.r.air || { leadership: 1, dataAvailability: 1, employeeSkills: 1, digitalWorkflow: 1, processMaturity: 1 },
+          maturityCategories: parsed.r.mc || { website: 3, cloud: 2, crm: 1, marketing: 2, cybersecurity: 2, aiAdoption: 1 },
+          aiReadiness: parsed.r.air || { leadership: 3, dataAvailability: 2, employeeSkills: 2, digitalWorkflow: 1, processMaturity: 2 },
           isAiGenerated: true,
         });
         setAnswers({
@@ -109,6 +109,7 @@ export default function AssessmentPage() {
     if (answers.teamSize) {
       const parsed = parseInt(answers.teamSize.replace(/\D/g, ""), 10);
       if (!isNaN(parsed) && parsed > 0) {
+        // eslint-disable-next-line
         setInteractiveTeamSize(parsed);
       }
     }
@@ -117,6 +118,7 @@ export default function AssessmentPage() {
   /* ─── Telemetry stage progression for consultative loading screens ── */
   useEffect(() => {
     if (flowStep === "ai_probing" || flowStep === "ai_diagnosing") {
+      // eslint-disable-next-line
       setTelemetryStage(1);
       const t1 = setTimeout(() => setTelemetryStage(2), 600);
       const t2 = setTimeout(() => setTelemetryStage(3), 1200);
@@ -234,6 +236,7 @@ export default function AssessmentPage() {
           name: leadForm.name,
           email: leadForm.email,
           company: leadForm.company,
+          budget_tier: leadForm.budgetTier,
           industry: answers.industry,
           team_size: answers.teamSize,
           maturity_score: report.maturityScore,
@@ -299,6 +302,17 @@ export default function AssessmentPage() {
     setCompletedMilestones((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleClaimGrantScroll = () => {
+    setLeadForm((prev) => ({
+      ...prev,
+      budgetTier: prev.budgetTier || "mdec_grant",
+    }));
+    const el = document.getElementById("consultation-form");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   // Dynamic live ROI calculations for the report sidebar
   const liveRoi = useMemo(() => {
     const baseSavings = report?.roiEstimate?.estimatedAnnualSavingsRM || 24000;
@@ -347,7 +361,9 @@ export default function AssessmentPage() {
     return [
       {
         stage: 1,
-        phase: "Stage 1: Days 1–14",
+        phase: "Phase 1: Quick Wins",
+        timeline: "Month 1–3",
+        roiHorizon: "ROI: 2–4 weeks",
         title: "Foundation & Quick Wins",
         badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
         goal: "Eliminate immediate manual friction and secure enterprise corporate presence.",
@@ -357,7 +373,9 @@ export default function AssessmentPage() {
       },
       {
         stage: 2,
-        phase: "Stage 2: Days 15–45",
+        phase: "Phase 2: Productivity",
+        timeline: "Month 3–6",
+        roiHorizon: "ROI: 3–6 months",
         title: "Sales & Workflow Automation",
         badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
         goal: "Capture 100% of inbound customer inquiries and automate deal follow-ups.",
@@ -367,10 +385,12 @@ export default function AssessmentPage() {
       },
       {
         stage: 3,
-        phase: "Stage 3: Days 46–90",
-        title: "Resilience & MDEC Grant Co-Funding",
+        phase: "Phase 3: Growth",
+        timeline: "Month 6–12",
+        roiHorizon: "ROI: 6–12 months",
+        title: "AI-Driven Growth & Resilience",
         badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
-        goal: "Defend proprietary data against ransomware and claim up to 50% government subsidy.",
+        goal: "Defend proprietary data against ransomware, deploy AI customer support and claim up to 50% MDEC subsidy.",
         action: actions[2] || "Deploy automated cloud backups and compile invoices for MDEC matching grant claim.",
         keyDeliverable: "Automated ransomware-grade backup retention & MDEC 50% grant claim submission.",
         product: products[2] || products[0] || null,
@@ -547,66 +567,90 @@ export default function AssessmentPage() {
 
         {/* ─── AI Loading (Probing Telemetry Engine) ──────────────────── */}
         {flowStep === "ai_probing" && (
-          <div className="card p-8 sm:p-12 text-center bg-white border border-blue-200/90 shadow-xl max-w-xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[11px] font-bold tracking-wider uppercase mb-5">
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping"></span>
-              SolverX Advisory Engine · Powered by Gemini 2.5 Flash
+          <div className="loading-overlay fixed inset-0 z-[100] flex items-center justify-center bg-[#001529] overflow-hidden">
+            {/* Animated background grid */}
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "linear-gradient(rgba(59,130,246,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.3) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+            {/* Radial glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-3xl" />
+            <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-cyan-500/10 rounded-full blur-3xl" />
+
+            <div className="relative z-10 max-w-lg w-full mx-auto px-6 text-center">
+              {/* Trust badge */}
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-blue-900/60 border border-blue-500/30 text-blue-300 text-[11px] font-bold tracking-widest uppercase mb-8 backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+                SolverX Advisory Engine · Powered by Google Gemini
+              </div>
+
+              {/* Animated orb */}
+              <div className="relative w-24 h-24 mx-auto mb-8">
+                <div className="absolute inset-0 rounded-full border-2 border-blue-800" />
+                <div className="absolute inset-0 rounded-full border-2 border-blue-400/60 border-t-transparent animate-spin" />
+                <div className="absolute inset-0 rounded-full border-2 border-cyan-400/30 border-b-transparent animate-spin" style={{ animationDirection: "reverse", animationDuration: "2s" }} />
+                <div className="absolute inset-3 rounded-full bg-blue-900/80 flex items-center justify-center">
+                  <svg className="w-7 h-7 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">
+                Calibrating Consultative Diagnostics
+              </h2>
+              <p className="text-[14px] text-blue-200/80 max-w-sm mx-auto leading-relaxed mb-8">
+                Analyzing your <span className="font-bold text-white">{answers.industry || "SME"}</span> profile against Exabytes solution architecture and Malaysian SME baselines.
+              </p>
+
+              {/* Progress steps */}
+              <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5 text-left space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                    telemetryStage >= 1 ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40"
+                  }`}>
+                    {telemetryStage >= 1 ? "✓" : "1"}
+                  </span>
+                  <div className="flex-1">
+                    <span className={`text-[13px] font-semibold ${telemetryStage >= 1 ? "text-white" : "text-white/40"}`}>
+                      Auditing operational friction &amp; tech stack gaps
+                    </span>
+                    {telemetryStage >= 1 && <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-emerald-500 rounded-full" style={{ width: "100%" }} /></div>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                    telemetryStage >= 2 ? "bg-emerald-500 text-white" : telemetryStage === 1 ? "bg-blue-500 text-white animate-pulse" : "bg-white/10 text-white/40"
+                  }`}>
+                    {telemetryStage >= 2 ? "✓" : "2"}
+                  </span>
+                  <div className="flex-1">
+                    <span className={`text-[13px] font-semibold ${telemetryStage >= 2 ? "text-white" : telemetryStage === 1 ? "text-blue-300" : "text-white/40"}`}>
+                      Benchmarking against Malaysian SME baselines
+                    </span>
+                    {telemetryStage >= 2 && <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-emerald-500 rounded-full" style={{ width: "100%" }} /></div>}
+                    {telemetryStage === 1 && <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-blue-500/60 rounded-full animate-pulse" style={{ width: "60%" }} /></div>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                    telemetryStage >= 3 ? "bg-blue-500 text-white animate-pulse" : "bg-white/10 text-white/40"
+                  }`}>
+                    {telemetryStage >= 3 ? "⚡" : "3"}
+                  </span>
+                  <div className="flex-1">
+                    <span className={`text-[13px] font-semibold ${telemetryStage >= 3 ? "text-blue-300" : "text-white/40"}`}>
+                      Formulating targeted consultative probes
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-blue-400/60 mt-6 tracking-wider">
+                Official SolverX Advisory Engine · Exabytes Malaysia
+              </p>
             </div>
-
-            <div className="relative w-16 h-16 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-blue-100"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
-              <div className="absolute inset-2 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-sm">
-                ✦
-              </div>
-            </div>
-
-            <h3 className="text-xl font-bold text-[#002244] tracking-tight">
-              Calibrating Consultative Diagnostics
-            </h3>
-            <p className="text-[13px] text-slate-500 mt-1.5 max-w-sm mx-auto">
-              Analyzing your <span className="font-semibold text-slate-700">{answers.industry || "SME"}</span> profile &amp; growth targets against Exabytes solution architecture.
-            </p>
-
-            {/* Live Enterprise Stepper */}
-            <div className="mt-8 space-y-3 text-left max-w-sm mx-auto p-4 rounded-xl bg-slate-50/80 border border-slate-200/70 text-[12px]">
-              <div className="flex items-center gap-2.5">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  telemetryStage >= 1 ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"
-                }`}>
-                  ✓
-                </span>
-                <span className={telemetryStage >= 1 ? "text-slate-900 font-medium" : "text-slate-400"}>
-                  Auditing operational friction &amp; tech stack gaps
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  telemetryStage >= 2 ? "bg-emerald-500 text-white" : telemetryStage === 1 ? "bg-blue-600 text-white animate-pulse" : "bg-slate-200 text-slate-500"
-                }`}>
-                  {telemetryStage >= 2 ? "✓" : "2"}
-                </span>
-                <span className={telemetryStage >= 2 ? "text-slate-900 font-medium" : telemetryStage === 1 ? "text-blue-700 font-semibold" : "text-slate-400"}>
-                  Benchmarking against Malaysian SME baselines
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  telemetryStage >= 3 ? "bg-blue-600 text-white animate-pulse" : "bg-slate-200 text-slate-500"
-                }`}>
-                  {telemetryStage >= 3 ? "⚡" : "3"}
-                </span>
-                <span className={telemetryStage >= 3 ? "text-blue-700 font-semibold" : "text-slate-400"}>
-                  Formulating targeted consultative probes
-                </span>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-slate-400 mt-6">
-              Official SolverX Advisory Engine for Exabytes Challenge 2026
-            </p>
           </div>
         )}
+
+
 
         {/* ─── AI Dynamic Follow-up Question (2 Consultative Probes) ─── */}
         {flowStep === "follow_up" && dynamicFollowUp && (() => {
@@ -726,66 +770,91 @@ export default function AssessmentPage() {
           );
         })()}
 
-        {/* ─── AI Diagnosing Loading Telemetry Card ───────────────────── */}
+        {/* ─── AI Diagnosing Loading Telemetry ─────────────────────── */}
         {flowStep === "ai_diagnosing" && (
-          <div className="card p-8 sm:p-12 text-center bg-white border border-emerald-200/90 shadow-xl max-w-xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold tracking-wider uppercase mb-5">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping"></span>
-              Generating Executive Growth Diagnosis
+          <div className="loading-overlay fixed inset-0 z-[100] flex items-center justify-center bg-[#001529] overflow-hidden">
+            {/* Animated background grid */}
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "linear-gradient(rgba(16,185,129,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.3) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+            {/* Radial glows */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-emerald-600/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-blue-500/10 rounded-full blur-3xl" />
+
+            <div className="relative z-10 max-w-lg w-full mx-auto px-6 text-center">
+              {/* Trust badge */}
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-900/60 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold tracking-widest uppercase mb-8 backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                Generating Executive Growth Diagnosis
+              </div>
+
+              {/* Animated orb */}
+              <div className="relative w-24 h-24 mx-auto mb-8">
+                <div className="absolute inset-0 rounded-full border-2 border-emerald-900" />
+                <div className="absolute inset-0 rounded-full border-2 border-emerald-400/70 border-t-transparent animate-spin" />
+                <div className="absolute inset-0 rounded-full border-2 border-blue-400/30 border-b-transparent animate-spin" style={{ animationDirection: "reverse", animationDuration: "3s" }} />
+                <div className="absolute inset-3 rounded-full bg-emerald-900/80 flex items-center justify-center">
+                  <svg className="w-7 h-7 text-emerald-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">
+                Synthesizing Executive Architecture
+              </h2>
+              <p className="text-[14px] text-emerald-200/80 max-w-sm mx-auto leading-relaxed mb-8">
+                Calculating Digital Maturity Index, RM labour savings, and matching Exabytes solutions to your <span className="font-bold text-white">{answers.industry || "SME"}</span> profile.
+              </p>
+
+              {/* Progress steps */}
+              <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5 text-left space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                    telemetryStage >= 1 ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40"
+                  }`}>
+                    {telemetryStage >= 1 ? "✓" : "1"}
+                  </span>
+                  <div className="flex-1">
+                    <span className={`text-[13px] font-semibold ${telemetryStage >= 1 ? "text-white" : "text-white/40"}`}>
+                      Computing Digital Maturity Score (0–100)
+                    </span>
+                    {telemetryStage >= 1 && <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-emerald-500 rounded-full" style={{ width: "100%" }} /></div>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                    telemetryStage >= 2 ? "bg-emerald-500 text-white" : "bg-emerald-500 text-white animate-pulse"
+                  }`}>
+                    {telemetryStage >= 2 ? "✓" : "2"}
+                  </span>
+                  <div className="flex-1">
+                    <span className={`text-[13px] font-semibold ${telemetryStage >= 2 ? "text-white" : "text-emerald-300"}`}>
+                      Calculating annual labour savings &amp; RM ROI payback
+                    </span>
+                    {telemetryStage >= 2 && <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-emerald-500 rounded-full" style={{ width: "100%" }} /></div>}
+                    {telemetryStage < 2 && <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-emerald-500/70 rounded-full animate-pulse" style={{ width: "55%" }} /></div>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                    telemetryStage >= 3 ? "bg-blue-500 text-white animate-pulse" : "bg-white/10 text-white/40"
+                  }`}>
+                    {telemetryStage >= 3 ? "⚡" : "3"}
+                  </span>
+                  <div className="flex-1">
+                    <span className={`text-[13px] font-semibold ${telemetryStage >= 3 ? "text-blue-300" : "text-white/40"}`}>
+                      Assembling 90-day roadmap &amp; Exabytes solution SKUs
+                    </span>
+                    {telemetryStage >= 3 && <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-blue-500 rounded-full" style={{ width: "100%" }} /></div>}
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-emerald-400/60 mt-6 tracking-wider">
+                <a href="https://www.exabytes.my/sme-digital-grant" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-300 underline underline-offset-2">
+                  MDEC SME Digitalization Co-Funding Framework Compatible
+                </a>
+              </p>
             </div>
-
-            <div className="relative w-16 h-16 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-emerald-100"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-emerald-600 border-t-transparent animate-spin"></div>
-              <div className="absolute inset-2 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-700 font-extrabold text-sm">
-                RM
-              </div>
-            </div>
-
-            <h3 className="text-xl font-bold text-[#002244] tracking-tight">
-              Synthesizing Executive Architecture
-            </h3>
-            <p className="text-[13px] text-slate-500 mt-1.5 max-w-sm mx-auto">
-              Calculating Digital Maturity Index, ringgit labor upside, and matching 24 Exabytes enterprise solutions.
-            </p>
-
-            {/* Live Enterprise Stepper */}
-            <div className="mt-8 space-y-3 text-left max-w-sm mx-auto p-4 rounded-xl bg-slate-50/80 border border-slate-200/70 text-[12px]">
-              <div className="flex items-center gap-2.5">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  telemetryStage >= 1 ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"
-                }`}>
-                  ✓
-                </span>
-                <span className={telemetryStage >= 1 ? "text-slate-900 font-medium" : "text-slate-400"}>
-                  Computing Digital Maturity Score (0–100)
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  telemetryStage >= 2 ? "bg-emerald-500 text-white" : "bg-blue-600 text-white animate-pulse"
-                }`}>
-                  {telemetryStage >= 2 ? "✓" : "2"}
-                </span>
-                <span className={telemetryStage >= 2 ? "text-slate-900 font-medium" : "text-blue-700 font-semibold"}>
-                  Calculating annual labor savings &amp; ROI payback
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                  telemetryStage >= 3 ? "bg-blue-600 text-white animate-pulse" : "bg-slate-200 text-slate-500"
-                }`}>
-                  {telemetryStage >= 3 ? "⚡" : "3"}
-                </span>
-                <span className={telemetryStage >= 3 ? "text-blue-700 font-semibold" : "text-slate-400"}>
-                  Assembling 90-day roadmap &amp; Exabytes SKUs
-                </span>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-slate-400 mt-6">
-              MDEC SME Digitalization Co-Funding Framework Compatible
-            </p>
           </div>
         )}
 
@@ -794,55 +863,6 @@ export default function AssessmentPage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {flowStep === "report" && report && (
           <div className="space-y-8">
-            
-            {/* ─── Executive Actions & PDF Proposal Toolbar (Screen Mode) ─ */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs print:hidden">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 text-[11px] font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-                  Live Digital Blueprint Ready
-                </span>
-                <span className="text-[12px] text-slate-400 hidden sm:inline">·</span>
-                <span className="text-[12px] text-slate-600 font-medium hidden sm:inline">
-                  Generated for {leadForm.company || answers.industry}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopyShareLink}
-                  className={`btn-secondary !text-xs !py-1.5 !px-3 font-semibold flex items-center gap-1.5 transition-all shadow-2xs ${
-                    copiedLink ? "!bg-emerald-50 !text-emerald-800 !border-emerald-300" : ""
-                  }`}
-                >
-                  {copiedLink ? (
-                    <>
-                      <span className="text-emerald-600 font-bold">✓</span>
-                      <span>Link Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                      </svg>
-                      <span>Share Diagnosis</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="btn-primary !text-xs !py-1.5 !px-3.5 font-bold flex items-center gap-1.5 shadow-2xs"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                  </svg>
-                  <span>Download PDF Proposal</span>
-                </button>
-              </div>
-            </div>
 
             {/* ─── Print-Only Proposal Header (Bonus 3: Exabytes Proposal Standard) ─ */}
             <div className="hidden print:block pb-5 mb-5 border-b-2 border-[#002244]">
@@ -1003,11 +1023,15 @@ export default function AssessmentPage() {
                         cybersecurity: "Cybersecurity",
                         aiAdoption: "AI Adoption",
                       };
-                      const stars = Array(5).fill(0).map((_, i) => (i < (value as number) ? "★" : "☆")).join("");
+                      const score = Math.min(5, Math.max(1, Math.round(Number(value)) || 1));
+                      const stars = Array(5).fill(0).map((_, i) => (i < score ? "★" : "☆")).join("");
                       return (
                         <div key={key} className="flex flex-col gap-1">
-                          <span className="text-[12px] font-semibold text-slate-900">{labelMap[key]}</span>
-                          <span className="text-[14px] text-yellow-500 tracking-widest">{stars}</span>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[12px] font-semibold text-slate-900">{labelMap[key] || key}</span>
+                            <span className="text-[10.5px] font-bold text-slate-400">{score}/5</span>
+                          </div>
+                          <span className="text-[14px] text-amber-500 tracking-widest">{stars}</span>
                         </div>
                       );
                     })}
@@ -1038,23 +1062,21 @@ export default function AssessmentPage() {
                     </p>
                   </div>
 
-                  {/* Business Pain Point Analysis */}
+                  {/* Step 4: Business Pain Point Analysis (Exact match to Challenge Step 4) */}
                   <div className="mt-8 border-t border-slate-100 pt-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 mb-1">
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
-                            Evidence-Based Pain Point Analysis
+                            Pain Point Analysis
                           </span>
-                          <span className="text-[11px] text-slate-400 font-semibold">AI-Diagnosed Operational Gaps</span>
+                          <span className="text-[11px] text-slate-400 font-medium capitalize">{answers.industry} Sector</span>
                         </div>
                         <h4 className="text-base font-bold text-[#002244] mt-1">
-                          Top {report.keyGaps.length} Operational Pain Points
+                          Top {report.keyGaps.length} Operational Bottlenecks
                         </h4>
                       </div>
-                      <span className="text-[11px] text-slate-500 font-medium bg-slate-100 px-2.5 py-1 rounded-full w-fit">
-                        Diagnosed for {answers.industry}
-                      </span>
+
                     </div>
 
                     <div className="space-y-2.5">
@@ -1085,13 +1107,13 @@ export default function AssessmentPage() {
                   </div>
                 </div>
 
-                {/* NEW: AI Readiness Score Panel */}
+                {/* AI Readiness Score Panel */}
                 {report.aiReadiness && (
                   <div className="card p-6 sm:p-7 bg-white border border-slate-200/90 shadow-sm rounded-2xl">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
                       <div>
                         <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider block">
-                          AI Horizon Challenge
+                          AI Readiness Diagnostic
                         </span>
                         <h3 className="text-lg font-bold text-[#002244]">
                           AI Readiness Score
@@ -1111,12 +1133,13 @@ export default function AssessmentPage() {
                           digitalWorkflow: "Digital Workflow",
                           processMaturity: "Process Maturity",
                         };
-                        const percentage = ((value as number) / 5) * 100;
+                        const score = Math.min(5, Math.max(1, Math.round(Number(value)) || 1));
+                        const percentage = (score / 5) * 100;
                         return (
                           <div key={key}>
                             <div className="flex justify-between items-center text-[12px] mb-1">
-                              <span className="font-semibold text-slate-700">{labelMap[key]}</span>
-                              <span className="text-slate-500 font-medium">{value}/5</span>
+                              <span className="font-semibold text-slate-700">{labelMap[key] || key}</span>
+                              <span className="text-slate-500 font-medium">{score}/5</span>
                             </div>
                             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                               <div
@@ -1182,9 +1205,18 @@ export default function AssessmentPage() {
                                 {stage.title}
                               </h4>
                             </div>
-                            <span className="text-[11px] text-slate-400 font-medium">
-                              Estimated: 2–3 weeks
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                                {stage.timeline}
+                              </span>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                                stage.stage === 1 ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                stage.stage === 2 ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                                "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              }`}>
+                                {stage.roiHorizon}
+                              </span>
+                            </div>
                           </div>
 
                           <p className="text-[12.5px] text-slate-600 mb-4 pl-8">
@@ -1401,14 +1433,14 @@ export default function AssessmentPage() {
                   </div>
                 </div>
 
-                {/* 5. Consultant Notes & Strategic Advisory (Bonus 3 Proposal Requirement) */}
+                {/* 5. Consultant Notes & Strategic Advisory */}
                 <div id="consultant-notes" className="card p-6 sm:p-7 bg-white border border-slate-200/90 shadow-sm rounded-2xl">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100">
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-bold uppercase tracking-wider">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                          Bonus 3 · PDF Proposal Feature
+                          Consultant Proposal Addendum
                         </span>
                         <span className="text-[11px] text-slate-400 font-semibold">Exabytes Certified Advisor</span>
                       </div>
@@ -1591,7 +1623,7 @@ export default function AssessmentPage() {
                 </div>
 
                 {/* 2. MDEC Malaysia Digital Grant Card */}
-                <div className="card p-5 bg-white border border-blue-200/90 shadow-sm">
+                <div className="card p-5 bg-gradient-to-br from-blue-50/50 via-white to-indigo-50/30 border border-blue-200/90 shadow-xs">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
                     <h4 className="text-[13px] font-bold text-slate-900 uppercase tracking-wide">
@@ -1599,35 +1631,55 @@ export default function AssessmentPage() {
                     </h4>
                   </div>
                   <p className="text-[12.5px] text-slate-600 leading-relaxed mb-3">
-                    As an eligible Malaysian SME, your business qualifies for up to <strong>50% matching grant</strong> on Exabytes Cloud, CRM, and cybersecurity implementations.
+                    As an eligible Malaysian SME, your business qualifies for up to <strong>50% matching grant</strong> on Exabytes Cloud, CRM, and cybersecurity implementations. Applications are submitted directly through an authorized Digitalisation Partner (DP) like Exabytes.
                   </p>
-                  <a
-                    href="https://www.exabytes.my"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[12px] font-semibold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
-                  >
-                    Learn about Exabytes SME Grant Support →
-                  </a>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-blue-100/80">
+                    <button
+                      type="button"
+                      onClick={handleClaimGrantScroll}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-semibold transition-all shadow-xs"
+                    >
+                      <span>Claim 50% Grant via Exabytes</span>
+                      <span className="text-[13px]">↓</span>
+                    </button>
+                    <a
+                      href="https://mdec.my"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11.5px] font-medium text-slate-500 hover:text-blue-700 inline-flex items-center gap-1"
+                    >
+                      Official MDEC Portal (mdec.my)
+                      <svg className="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
                 </div>
 
                 {/* 3. Lead Capture & Advisor Handover (ID anchor for smooth scroll) */}
                 <div id="consultation-form" className="card p-6 bg-white border border-slate-200/90 shadow-sm print:hidden">
-                  <h4 className="text-base font-bold text-[#002244] mb-1">
-                    Book Exabytes Advisor Review
-                  </h4>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <h4 className="text-base font-bold text-[#002244]">
+                      Free Consultation Request
+                    </h4>
+                  </div>
                   <p className="text-[12px] text-slate-500 mb-4 leading-relaxed">
-                    Have an Exabytes digital consultant verify your architecture and prepare your grant-compliant invoice.
+                    An assigned Exabytes specialist will review your blueprint and contact you within 24 hours.
                   </p>
 
                   {leadSaved ? (
-                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-[13px] text-emerald-900 font-medium space-y-1">
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-[13px] text-emerald-900 font-medium space-y-2">
                       <div className="flex items-center gap-1.5 font-bold text-emerald-800">
-                        <span>✓</span> Request Logged Successfully
+                        <span>✓</span> Consultation Request Logged
                       </div>
                       <p className="text-[12px] text-emerald-700">
-                        An Exabytes SME Growth Advisor will contact you at {leadForm.email}.
+                        An Exabytes SME Growth Advisor will contact you at <strong>{leadForm.email}</strong> within 24 hours — pre-briefed with your full diagnostic.
                       </p>
+                      <div className="mt-2 pt-2 border-t border-emerald-200 flex items-center gap-2 text-[11px] text-emerald-600">
+                        <span>📋</span>
+                        <span>Advisor pre-briefed: Industry, score, pain points & matched solutions.</span>
+                      </div>
                     </div>
                   ) : (
                     <form onSubmit={handleSubmitLead} className="space-y-3">
@@ -1669,13 +1721,34 @@ export default function AssessmentPage() {
                           className="input !py-2 !text-[13px]"
                         />
                       </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wide mb-1">
+                          Monthly Investment Budget *
+                        </label>
+                        <select
+                          required
+                          value={leadForm.budgetTier}
+                          onChange={(e) => setLeadForm({ ...leadForm, budgetTier: e.target.value })}
+                          className="input !py-2 !text-[13px]"
+                        >
+                          <option value="">Select budget range…</option>
+                          <option value="under_500">Below RM 500 / month</option>
+                          <option value="500_2000">RM 500 – RM 2,000 / month</option>
+                          <option value="above_2000">RM 2,000+ / month</option>
+                          <option value="mdec_grant">Applying for 50% MDEC SME Grant</option>
+                        </select>
+                      </div>
 
                       <button
                         type="submit"
                         disabled={isSubmittingLead}
-                        className="btn-primary !w-full !py-2.5 !text-[13px] font-semibold shadow-sm mt-1"
+                        className="btn-primary !w-full !py-3 !text-[13px] font-bold shadow-sm mt-2 flex items-center justify-center gap-2"
                       >
-                        {isSubmittingLead ? "Submitting..." : "Connect with Exabytes Specialist"}
+                        {isSubmittingLead ? (
+                          <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Submitting…</>
+                        ) : (
+                          <>I Would Like a Free Consultation →</>
+                        )}
                       </button>
                     </form>
                   )}

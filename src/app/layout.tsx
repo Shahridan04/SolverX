@@ -61,7 +61,7 @@ export default function RootLayout({
 
         {/* ─── Header ──────────────────────────────────────────────── */}
         <header
-          className="sticky top-0 z-50 print:hidden border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs"
+          className="sticky top-0 z-40 print:hidden border-b border-slate-200/90 bg-white/95 backdrop-blur-md shadow-xs"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             {/* Logo */}
