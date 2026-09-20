@@ -7,25 +7,34 @@ export default function RoiCalculatorPreview() {
   const [teamSize, setTeamSize] = useState<number>(8);
   const [monthlyRevenue, setMonthlyRevenue] = useState<number>(80000); // RM 80k
 
-  // Calculations calibrated for Malaysian SMEs based on Exabytes digitalization benchmarks
+  // Calculations calibrated for Malaysian SMEs (Exabytes stack, MDEC SME Digitalisation Initiative benchmarks)
   const calculations = useMemo(() => {
-    // Approx 3.5 hrs/week manual inefficiency per employee (spreadsheets, manual follow-ups, lost inquiries)
+    // ~3.5 hrs/week manual inefficiency per employee — within McKinsey / SME Corp MY 2–5 hr range
     const hoursSavedPerEmployeeWeekly = 3.5;
     const totalWeeklyHoursSaved = Math.round(teamSize * hoursSavedPerEmployeeWeekly);
     const totalAnnualHoursSaved = totalWeeklyHoursSaved * 50;
 
-    // Average blended SME employee hourly cost ~ RM 22/hr
+    // Blended SME employee cost ~RM 22/hr (≈ RM 3,800/mo ÷ 176 hrs), conservative for KL/PJ market
     const annualLaborSavingsRM = Math.round(totalAnnualHoursSaved * 22);
 
-    // CRM + Web presence conversion uplift (typically 1.8% to 3.5% revenue expansion)
+    // CRM + web uplift: 2.4% of ARR — mid-range of 1.5%–5% per Salesforce/HubSpot studies
     const annualRevenueGrowthRM = Math.round((monthlyRevenue * 12) * 0.024);
 
     const totalAnnualEconomicImpactRM = annualLaborSavingsRM + annualRevenueGrowthRM;
 
-    // Estimated monthly Exabytes digital stack (e.g. Business Hosting + Google Workspace + Freshsales CRM)
+    // Realistic Exabytes digital stack (subject to eligibility for MDEC 50% co-funding):
+    //   Business SSD Hosting: RM 89/mo
+    //   Google Workspace Business Starter: RM 25/user/mo
+    //   Freshsales Growth CRM: RM 55/user/mo (≈ USD 15 at current rate)
+    const hosting = 89;
+    const gwsPerSeat = 25;       // GWS Business Starter
+    const crmPerSeat = 55;       // Freshsales Growth
+    // Note: typically 60–70% of team uses CRM; full team uses GWS
+    const gwsCost = Math.round(teamSize * gwsPerSeat);
+    const crmCost = Math.round(Math.ceil(teamSize * 0.7) * crmPerSeat);
     const estimatedMonthlyInvestmentRM = Math.min(
-      Math.round(49 + teamSize * 38),
-      1200
+      hosting + gwsCost + crmCost,
+      5000  // practical ceiling for teams up to ~80 pax
     );
 
     const netAnnualGainRM = totalAnnualEconomicImpactRM - (estimatedMonthlyInvestmentRM * 12);
@@ -122,10 +131,10 @@ export default function RoiCalculatorPreview() {
           <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/80 text-[12px] text-slate-600 space-y-1">
             <div className="flex items-center gap-1.5 font-medium text-slate-800">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              MDEC SME Grant Co-Funding Opportunity:
+              MDEC SME Digitalisation Initiative (SDI) Co-Funding:
             </div>
             <p className="text-slate-500 leading-normal">
-              Eligible Malaysian SMEs can qualify for up to 50% matching grant on Exabytes approved digital solutions.
+              Eligible Malaysian SMEs may qualify for up to 50% matching grant on Exabytes approved digital solutions — subject to SME eligibility criteria and current programme allocation.
             </p>
           </div>
         </div>
@@ -186,7 +195,7 @@ export default function RoiCalculatorPreview() {
               </svg>
             </Link>
             <p className="text-center text-[11px] text-blue-300/70 mt-2">
-              Takes ~3 minutes · Zero commitment · Instant AI report
+              Takes ~3 minutes · Zero commitment · AI-generated report
             </p>
           </div>
         </div>

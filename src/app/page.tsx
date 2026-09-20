@@ -185,7 +185,7 @@ export default function HomePage() {
               <p className="text-[12px] text-slate-500 mt-0.5">Dynamic Gemini AI Diagnostic</p>
             </div>
             <div>
-              <p className="text-2xl sm:text-3xl font-bold text-[#002244]">RM 38,500</p>
+              <p className="text-2xl sm:text-3xl font-bold text-[#002244]">RM 43,200</p>
               <p className="text-[12px] text-slate-500 mt-0.5">Avg. Projected Annual SME Upside</p>
             </div>
             <div>
@@ -222,7 +222,7 @@ export default function HomePage() {
               From Diagnostic to Deployment in 3 Steps
             </h2>
             <p className="text-slate-600 text-[14px] mt-2">
-              Unlike generic questionnaires, SolverX uses active AI reasoning with background pre-fetching for instant results.
+              Unlike generic AI chatbots, SolverX uses live Gemini reasoning to generate consultative probes tailored to your exact industry — then synthesises a full executive report in minutes.
             </p>
           </div>
 
@@ -231,12 +231,12 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-lg bg-blue-100/70 text-blue-700 flex items-center justify-center font-bold text-lg mb-5">
                 1
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">5 Baseline Questions</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">5 Smart Baseline Questions</h3>
               <p className="text-[13px] text-slate-600 leading-relaxed">
-                Tell us about your industry, team structure, current customer acquisition channel, and primary operational bottlenecks.
+                Tell us your industry, team size, current tools, biggest operational bottleneck, and 6-month growth goal. Takes under 90 seconds.
               </p>
               <div className="mt-4 pt-4 border-t border-slate-100 text-[11px] text-blue-600 font-medium">
-                ⏱ Takes under 90 seconds
+                ⏱ Under 90 seconds
               </div>
             </div>
 
@@ -244,12 +244,12 @@ export default function HomePage() {
               <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-lg mb-5 shadow-sm">
                 2
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Gemini Dynamic Follow-up</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Gemini AI Consultative Probes</h3>
               <p className="text-[13px] text-slate-600 leading-relaxed">
-                Google Gemini analyzes your answers in the background and poses one targeted probe tailored to your exact industry challenges.
+                Google Gemini analyses your answers and generates 2 targeted diagnostic probes — calibrating operational severity and your MDEC grant readiness — specific to your industry.
               </p>
               <div className="mt-4 pt-4 border-t border-slate-100 text-[11px] text-emerald-600 font-medium">
-                ⚡ Background pre-fetched for 0s wait
+                🤖 Live Gemini reasoning · ~3 min total
               </div>
             </div>
 
@@ -259,10 +259,10 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">Executive Growth Report</h3>
               <p className="text-[13px] text-slate-600 leading-relaxed">
-                Receive your digital maturity score, ringgit ROI estimate, 30-day implementation roadmap, and matched Exabytes solutions.
+                Receive your Digital Maturity Score, AI Readiness breakdown, RM ROI estimate, 90-day Exabytes roadmap, and a print-ready consultant proposal.
               </p>
               <div className="mt-4 pt-4 border-t border-slate-100 text-[11px] text-blue-600 font-medium">
-                📄 Print, save, or claim MDEC Grant
+                📄 Print · Share link · Claim MDEC Grant
               </div>
             </div>
           </div>
@@ -408,6 +408,10 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+
+        <p className="text-center text-[11px] text-slate-400 mt-6 italic">
+          * Scenarios illustrate projected outcomes based on Exabytes SME customer benchmarks and Gemini AI modelling. Individual results will vary.
+        </p>
       </section>
 
       {/* ─── Final CTA ───────────────────────────────────────────────── */}

@@ -325,8 +325,14 @@ export default function AssessmentPage() {
     const adjustedWeeklyHours = Math.round(baseHours * sizeMultiplier * adoptionMultiplier);
     const adjustedAnnualHours = adjustedWeeklyHours * 50;
 
-    // Monthly solution cost approx RM 89 to RM 480 based on team size
-    const estMonthlyCostRM = Math.min(600, Math.round(69 + interactiveTeamSize * 24));
+    // Realistic Exabytes stack cost aligned with RoiCalculatorPreview:
+    //   Business SSD Hosting: RM 89/mo (fixed)
+    //   Google Workspace Business Starter: RM 25/user/mo
+    //   Freshsales Growth CRM: RM 55/user/mo (~70% team adoption)
+    const hosting = 89;
+    const gwsCost = Math.round(interactiveTeamSize * 25);
+    const crmCost = Math.round(Math.ceil(interactiveTeamSize * 0.7) * 55);
+    const estMonthlyCostRM = Math.min(hosting + gwsCost + crmCost, 5000);
     const netAnnualUpsideRM = adjustedAnnualSavingsRM - estMonthlyCostRM * 12;
     const paybackMonths = Math.max(
       0.9,
@@ -487,7 +493,7 @@ export default function AssessmentPage() {
 
       {/* ─── Main Container: Narrow for Quiz, Expansive (max-w-7xl) for Report ─── */}
       <div className={`relative z-10 ${flowStep === "report" ? "max-w-7xl mx-auto px-4 sm:px-6 py-8" : "max-w-3xl mx-auto px-4 sm:px-6 py-10"}`}>
-        
+
         {/* ─── Question Steps ────────────────────────────────────────── */}
         {flowStep === "questions" && currentQ && (
           <div className="card p-6 md:p-10 bg-white border border-slate-200/90 shadow-md">
@@ -517,16 +523,14 @@ export default function AssessmentPage() {
                   <button
                     key={opt.id}
                     onClick={() => handleSelectOption(opt.id)}
-                    className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all flex items-start gap-3.5 ${
-                      isSelected
+                    className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all flex items-start gap-3.5 ${isSelected
                         ? "border-blue-600 bg-blue-50/70 shadow-xs ring-1 ring-blue-600/30"
                         : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`shrink-0 w-4 h-4 mt-0.5 rounded-full border-2 flex items-center justify-center ${
-                        isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300"
-                      }`}
+                      className={`shrink-0 w-4 h-4 mt-0.5 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300"
+                        }`}
                     >
                       {isSelected && (
                         <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 8 8">
@@ -603,9 +607,8 @@ export default function AssessmentPage() {
               {/* Progress steps */}
               <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5 text-left space-y-4">
                 <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                    telemetryStage >= 1 ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40"
-                  }`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${telemetryStage >= 1 ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40"
+                    }`}>
                     {telemetryStage >= 1 ? "✓" : "1"}
                   </span>
                   <div className="flex-1">
@@ -616,9 +619,8 @@ export default function AssessmentPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                    telemetryStage >= 2 ? "bg-emerald-500 text-white" : telemetryStage === 1 ? "bg-blue-500 text-white animate-pulse" : "bg-white/10 text-white/40"
-                  }`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${telemetryStage >= 2 ? "bg-emerald-500 text-white" : telemetryStage === 1 ? "bg-blue-500 text-white animate-pulse" : "bg-white/10 text-white/40"
+                    }`}>
                     {telemetryStage >= 2 ? "✓" : "2"}
                   </span>
                   <div className="flex-1">
@@ -630,9 +632,8 @@ export default function AssessmentPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                    telemetryStage >= 3 ? "bg-blue-500 text-white animate-pulse" : "bg-white/10 text-white/40"
-                  }`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${telemetryStage >= 3 ? "bg-blue-500 text-white animate-pulse" : "bg-white/10 text-white/40"
+                    }`}>
                     {telemetryStage >= 3 ? "⚡" : "3"}
                   </span>
                   <div className="flex-1">
@@ -658,14 +659,14 @@ export default function AssessmentPage() {
             dynamicFollowUp.probes && dynamicFollowUp.probes.length > 0
               ? dynamicFollowUp.probes
               : [
-                  {
-                    id: dynamicFollowUp.scenarioId || "probe_1",
-                    question: dynamicFollowUp.question,
-                    subtitle: dynamicFollowUp.subtitle,
-                    options: dynamicFollowUp.options,
-                    category: "severity" as const,
-                  },
-                ];
+                {
+                  id: dynamicFollowUp.scenarioId || "probe_1",
+                  question: dynamicFollowUp.question,
+                  subtitle: dynamicFollowUp.subtitle,
+                  options: dynamicFollowUp.options,
+                  category: "severity" as const,
+                },
+              ];
 
           const safeProbeIdx = Math.min(activeProbeIdx, probes.length - 1);
           const currentProbe = probes[safeProbeIdx] || probes[0];
@@ -703,16 +704,14 @@ export default function AssessmentPage() {
                           [currentProbe.id]: opt.id,
                         }))
                       }
-                      className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all flex items-start gap-3.5 ${
-                        isSelected
+                      className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all flex items-start gap-3.5 ${isSelected
                           ? "border-blue-600 bg-blue-50/70 shadow-xs ring-1 ring-blue-600/30"
                           : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60"
-                      }`}
+                        }`}
                     >
                       <div
-                        className={`shrink-0 w-4 h-4 mt-0.5 rounded-full border-2 flex items-center justify-center ${
-                          isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300"
-                        }`}
+                        className={`shrink-0 w-4 h-4 mt-0.5 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300"
+                          }`}
                       >
                         {isSelected && (
                           <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 8 8">
@@ -808,9 +807,8 @@ export default function AssessmentPage() {
               {/* Progress steps */}
               <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5 text-left space-y-4">
                 <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                    telemetryStage >= 1 ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40"
-                  }`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${telemetryStage >= 1 ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40"
+                    }`}>
                     {telemetryStage >= 1 ? "✓" : "1"}
                   </span>
                   <div className="flex-1">
@@ -821,9 +819,8 @@ export default function AssessmentPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                    telemetryStage >= 2 ? "bg-emerald-500 text-white" : "bg-emerald-500 text-white animate-pulse"
-                  }`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${telemetryStage >= 2 ? "bg-emerald-500 text-white" : "bg-emerald-500 text-white animate-pulse"
+                    }`}>
                     {telemetryStage >= 2 ? "✓" : "2"}
                   </span>
                   <div className="flex-1">
@@ -835,9 +832,8 @@ export default function AssessmentPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
-                    telemetryStage >= 3 ? "bg-blue-500 text-white animate-pulse" : "bg-white/10 text-white/40"
-                  }`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${telemetryStage >= 3 ? "bg-blue-500 text-white animate-pulse" : "bg-white/10 text-white/40"
+                    }`}>
                     {telemetryStage >= 3 ? "⚡" : "3"}
                   </span>
                   <div className="flex-1">
@@ -1042,10 +1038,10 @@ export default function AssessmentPage() {
 
             {/* ─── 2-Column Dashboard Grid ────────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              
+
               {/* ─── Left / Main Column (2/3 width) ───────────────────── */}
               <div className="lg:col-span-2 space-y-8">
-                
+
                 {/* 1. Executive Summary & Gaps */}
                 <div className="card p-6 sm:p-7 bg-white border border-slate-200/90 shadow-sm rounded-2xl">
                   <div className="flex items-center gap-2 mb-3">
@@ -1123,7 +1119,7 @@ export default function AssessmentPage() {
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="space-y-4">
                       {Object.entries(report.aiReadiness).map(([key, value]) => {
                         const labelMap: Record<string, string> = {
@@ -1185,8 +1181,8 @@ export default function AssessmentPage() {
                         stage.stage === 1
                           ? "border-l-4 border-l-blue-600"
                           : stage.stage === 2
-                          ? "border-l-4 border-l-indigo-600"
-                          : "border-l-4 border-l-emerald-600";
+                            ? "border-l-4 border-l-indigo-600"
+                            : "border-l-4 border-l-emerald-600";
 
                       return (
                         <div
@@ -1209,11 +1205,10 @@ export default function AssessmentPage() {
                               <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
                                 {stage.timeline}
                               </span>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                                stage.stage === 1 ? "bg-blue-50 text-blue-700 border-blue-200" :
-                                stage.stage === 2 ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
-                                "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              }`}>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${stage.stage === 1 ? "bg-blue-50 text-blue-700 border-blue-200" :
+                                  stage.stage === 2 ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                                    "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                }`}>
                                 {stage.roiHorizon}
                               </span>
                             </div>
@@ -1227,9 +1222,8 @@ export default function AssessmentPage() {
                           <div className="space-y-2.5 pl-8 mb-4">
                             <div
                               onClick={() => toggleMilestone(task1Key)}
-                              className={`p-3 rounded-lg border transition-all cursor-pointer flex items-start gap-3 ${
-                                isTask1Done ? "bg-emerald-50/70 border-emerald-300" : "bg-slate-50/70 border-slate-200"
-                              }`}
+                              className={`p-3 rounded-lg border transition-all cursor-pointer flex items-start gap-3 ${isTask1Done ? "bg-emerald-50/70 border-emerald-300" : "bg-slate-50/70 border-slate-200"
+                                }`}
                             >
                               <input
                                 type="checkbox"
@@ -1246,9 +1240,8 @@ export default function AssessmentPage() {
 
                             <div
                               onClick={() => toggleMilestone(task2Key)}
-                              className={`p-3 rounded-lg border transition-all cursor-pointer flex items-start gap-3 ${
-                                isTask2Done ? "bg-emerald-50/70 border-emerald-300" : "bg-slate-50/70 border-slate-200"
-                              }`}
+                              className={`p-3 rounded-lg border transition-all cursor-pointer flex items-start gap-3 ${isTask2Done ? "bg-emerald-50/70 border-emerald-300" : "bg-slate-50/70 border-slate-200"
+                                }`}
                             >
                               <input
                                 type="checkbox"
@@ -1362,11 +1355,10 @@ export default function AssessmentPage() {
                         <button
                           key={tab.id}
                           onClick={() => setProductFilter(tab.id)}
-                          className={`px-3 py-1 rounded-full text-[12px] font-medium transition-all ${
-                            productFilter === tab.id
+                          className={`px-3 py-1 rounded-full text-[12px] font-medium transition-all ${productFilter === tab.id
                               ? "bg-blue-600 text-white shadow-xs"
                               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                          }`}
+                            }`}
                         >
                           {tab.label}
                         </button>
@@ -1541,7 +1533,7 @@ export default function AssessmentPage() {
 
               {/* ─── Right / Strategic Sidebar (1/3 width) ──────────── */}
               <div className="space-y-6">
-                
+
                 {/* 1. Live Interactive ROI Widget (High-Contrast Navy Card, NO White Override) */}
                 <div className="p-6 rounded-2xl bg-[#002244] text-white shadow-xl border border-blue-900 relative overflow-hidden">
                   <div className="flex items-center justify-between border-b border-blue-800 pb-3 mb-4">
@@ -1627,11 +1619,11 @@ export default function AssessmentPage() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
                     <h4 className="text-[13px] font-bold text-slate-900 uppercase tracking-wide">
-                      MDEC Grant Co-Funding Ready
+                      MDEC SME Digitalisation Initiative (SDI)
                     </h4>
                   </div>
                   <p className="text-[12.5px] text-slate-600 leading-relaxed mb-3">
-                    As an eligible Malaysian SME, your business qualifies for up to <strong>50% matching grant</strong> on Exabytes Cloud, CRM, and cybersecurity implementations. Applications are submitted directly through an authorized Digitalisation Partner (DP) like Exabytes.
+                    As an eligible Malaysian SME, your business may qualify for up to <strong>50% matching grant</strong> on Exabytes Cloud, CRM, and cybersecurity implementations — subject to SME eligibility criteria and current programme allocation. Applications are submitted through an authorised Digitalisation Partner (DP) like Exabytes.
                   </p>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-blue-100/80">
                     <button
