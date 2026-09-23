@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { LeadRow, RecommendedProduct, AssessmentPayload } from "@/lib/supabase/types";
+import type { LeadRow, RecommendedProduct } from "@/lib/supabase/types";
 
 interface AdminLeadsViewProps {
   initialLeads: LeadRow[];
@@ -76,12 +76,61 @@ function formatLabel(val: string, dictionary: Record<string, string>): string {
 }
 
 export default function AdminLeadsView({ initialLeads, adminKey }: AdminLeadsViewProps) {
-  const [leads] = useState<LeadRow[]>(initialLeads);
+  const [leads, setLeads] = useState<LeadRow[]>(initialLeads);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterIndustry, setFilterIndustry] = useState<string>("all");
   const [filterTier, setFilterTier] = useState<string>("all");
   const [selectedLead, setSelectedLead] = useState<LeadRow | null>(null);
   const [copiedLead, setCopiedLead] = useState(false);
+  const [deleteTargetLead, setDeleteTargetLead] = useState<LeadRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const handleDeleteReport = async () => {
+    if (!deleteTargetLead) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(
+        `/api/admin/leads?id=${encodeURIComponent(deleteTargetLead.id)}&key=${encodeURIComponent(adminKey)}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${adminKey}`,
+          },
+        }
+      );
+
+      const data = (await res.json()) as { success?: boolean; error?: string };
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to delete report.");
+      }
+
+      const deletedId = deleteTargetLead.id;
+      const targetLabel = deleteTargetLead.company || deleteTargetLead.name;
+      setLeads((prev) => prev.filter((l) => l.id !== deletedId));
+      if (selectedLead?.id === deletedId) {
+        setSelectedLead(null);
+      }
+      setDeleteTargetLead(null);
+      setFeedbackMessage({
+        type: "success",
+        text: `Report for "${targetLabel}" successfully deleted.`,
+      });
+      setTimeout(() => setFeedbackMessage(null), 4000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setFeedbackMessage({
+        type: "error",
+        text: msg,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Industry list for filter dropdown
   const industries = useMemo(() => {
@@ -207,6 +256,37 @@ Date: ${new Date(lead.created_at).toLocaleDateString("en-MY")}`;
 
   return (
     <div className="space-y-6">
+      {/* ─── Feedback Banner ────────────────────────────────────────── */}
+      {feedbackMessage && (
+        <div
+          className={`p-3.5 rounded-xl border flex items-center justify-between text-xs font-medium transition-all ${
+            feedbackMessage.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {feedbackMessage.type === "success" ? (
+              <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4 text-red-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}
+            <span>{feedbackMessage.text}</span>
+          </div>
+          <button
+            onClick={() => setFeedbackMessage(null)}
+            className="text-slate-400 hover:text-slate-600 ml-4 cursor-pointer"
+            aria-label="Dismiss message"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* ─── Metric KPI Cards (Exabytes Executive Styling) ──────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card p-5 bg-white border border-slate-200/90 shadow-2xs hover:border-blue-200 transition-all">
@@ -352,7 +432,7 @@ Date: ${new Date(lead.created_at).toLocaleDateString("en-MY")}`;
                 <th className="px-5 py-3.5">Sector &amp; Scale</th>
                 <th className="px-5 py-3.5">Maturity Score</th>
                 <th className="px-5 py-3.5">Core Operational Bottleneck</th>
-                <th className="px-5 py-3.5 text-right">Consultation Dossier</th>
+                <th className="px-5 py-3.5 text-right">Actions &amp; Dossier</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -447,15 +527,36 @@ Date: ${new Date(lead.created_at).toLocaleDateString("en-MY")}`;
                       </td>
 
                       <td className="px-5 py-4 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => setSelectedLead(lead)}
-                          className="btn-secondary !text-xs !py-1.5 !px-3 font-semibold !text-blue-700 !border-blue-200 hover:!bg-blue-50 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <span>Inspect Diagnosis</span>
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
+                        <div className="inline-flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setSelectedLead(lead)}
+                            className="btn-secondary !text-xs !py-1.5 !px-3 font-semibold !text-blue-700 !border-blue-200 hover:!bg-blue-50 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <span>Inspect Diagnosis</span>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTargetLead(lead);
+                            }}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-200 cursor-pointer"
+                            title="Delete report"
+                            aria-label={`Delete report for ${lead.company || lead.name}`}
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.75}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -708,7 +809,7 @@ Date: ${new Date(lead.created_at).toLocaleDateString("en-MY")}`;
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => handleCopyLeadDetails(selectedLead)}
                   className="btn-secondary !text-xs !py-2 !px-3 font-semibold flex items-center gap-1.5 cursor-pointer"
@@ -733,6 +834,22 @@ Date: ${new Date(lead.created_at).toLocaleDateString("en-MY")}`;
                   </svg>
                   <span>Email Client</span>
                 </a>
+                <button
+                  type="button"
+                  onClick={() => setDeleteTargetLead(selectedLead)}
+                  className="btn-secondary !text-xs !py-2 !px-3 font-semibold !text-red-600 !border-red-200 hover:!bg-red-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  title="Delete this report"
+                >
+                  <svg className="w-3.5 h-3.5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.75}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  <span>Delete Report</span>
+                </button>
               </div>
 
               <button
@@ -740,6 +857,84 @@ Date: ${new Date(lead.created_at).toLocaleDateString("en-MY")}`;
                 className="btn-secondary !text-xs !py-2 !px-4 font-semibold text-slate-600 cursor-pointer"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Delete Confirmation Modal ──────────────────────────────── */}
+      {deleteTargetLead && (
+        <div
+          className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => {
+            if (!isDeleting) setDeleteTargetLead(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-fade-in relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </div>
+
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-slate-900">
+                  Delete Assessment Report?
+                </h3>
+                <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                  Are you sure you want to permanently delete the report for{" "}
+                  <strong className="text-slate-900">
+                    {deleteTargetLead.company || deleteTargetLead.name}
+                  </strong>{" "}
+                  ({deleteTargetLead.email})?
+                </p>
+                <p className="text-[11px] text-red-600 mt-2 bg-red-50/80 p-2 rounded-lg border border-red-100">
+                  ⚠️ This action cannot be undone. All diagnostic inputs, maturity scores, and recommendations will be removed.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeleteTargetLead(null)}
+                className="btn-secondary !text-xs !py-2 !px-3.5 font-medium text-slate-700 disabled:opacity-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteReport}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-semibold text-xs tracking-wide flex items-center gap-1.5 transition-all shadow-xs shadow-red-500/20 disabled:opacity-50 cursor-pointer"
+              >
+                {isDeleting ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Delete Permanently</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
