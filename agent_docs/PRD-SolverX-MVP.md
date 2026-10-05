@@ -16,7 +16,7 @@ Sarah runs a 12-person catering business. Answers 5 questions → flags "Operati
 |---|---|---|
 | 1 | Discovery Questionnaire | 5 base questions, mobile-friendly, no AI needed |
 | 2 | AI Follow-up Engine | Gemini-reasoned (not if/else), covers all 7 documented scenarios — core "AI Innovation" story (25% of score) |
-| 2a | Pre-fetch AI follow-up | Gemini call fires in background when user reaches Q4 (before they submit) — follow-up is ready by the time they hit submit on Q5, feels instant. See TechDesign for implementation. |
+| 2a | Consultative Telemetry Loading | 3-stage animated telemetry progress sequence while Gemini processes the diagnostic, providing an executive consulting experience with instant static fallback. |
 | 3 | Recommendation Report | Maps to the Exabytes catalog; each product includes an LLM-generated "why this fits you" line |
 | 4 | ROI Calculator | Deterministic math (hrs/week x labour value), not AI |
 | 5 | Live interactive demo | Hard competition rule — no static mockups accepted |
@@ -29,7 +29,7 @@ Sarah runs a 12-person catering business. Answers 5 questions → flags "Operati
 
 ## Success Metrics
 - Full flow completes in <3 min live, without errors
-- AI follow-up appears within 1-2s of Q5 submission (pre-fetched)
+- AI follow-up appears within 1-2s of Q5 submission with consultative telemetry animation
 - 4+ of 7 scenarios demonstrable on stage
 - Recommendations match the documented solution mapping
 - Every recommendation shows genuine "why this fits you" reasoning, not a generic blurb
@@ -43,19 +43,19 @@ Match the live Exabytes site, not a custom look: deep royal blue / white / off-w
 | Risk | Mitigation |
 |---|---|
 | AI follow-ups feel generic on demo | Ground prompts tightly in the documented scenario data; test against real personas before recording |
-| Live AI latency or failure | Pre-fetch mitigates latency. Mandatory static fallback per scenario if Gemini fails — see TechDesign |
+| Live AI latency or failure | Consultative telemetry UX hides perceived wait time. Mandatory static fallback per scenario if Gemini fails — see TechDesign |
 | Scope creep past this list | This Must-Have list is the ceiling — see AGENTS.md |
 | Real PII collected at a live event | Add a simple consent line to the lead form — Malaysia PDPA applies even at MVP scale |
 | Admin dashboard exposes lead PII | Protect behind a secret URL param or basic env-var password — not public |
 
 ## Handoff
-- Stage: prd-v2.1 (pre-fetch + admin dashboard added)
+- Stage: prd-v2.1 (admin dashboard added)
 - Stack: see `tech_stack.md` · Budget: $0/month
 
 ```json
 {
   "appName": "SolverX",
-  "mustHave": ["Discovery Questionnaire", "AI Follow-up Engine (pre-fetched)", "Recommendation Report w/ reasoning", "ROI Calculator", "Live demo", "Digital Maturity Score", "Downloadable report (browser print)", "Lead Capture (Supabase, server-only)", "Admin Dashboard (leads table, read-only, protected)"],
+  "mustHave": ["Discovery Questionnaire", "AI Follow-up Engine", "Consultative Telemetry Loading", "Recommendation Report w/ reasoning", "ROI Calculator", "Live demo", "Digital Maturity Score", "Downloadable report (browser print)", "Lead Capture (Supabase, server-only)", "Admin Dashboard (leads table, read-only, protected)"],
   "notInMvp": ["Real checkout", "Multi-language", "Saved accounts", "Full Freshsales sync"]
 }
 ```

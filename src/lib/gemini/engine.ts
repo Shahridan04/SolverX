@@ -63,7 +63,7 @@ export interface DiagnosisReport {
 
 /**
  * Timeout wrapper for AI calls. 45s timeout allows full Gemini reasoning
- * while pre-fetching on Q5 removes user-perceived waiting latency.
+ * paired with consultative telemetry stages to provide a smooth UX.
  */
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 45000): Promise<T> {
   return Promise.race([
@@ -262,6 +262,113 @@ Respond ONLY with a valid JSON object matching this schema:
 }
 
 /**
+ * Derives deterministic 1-5 maturity category scores directly from assessment answers.
+ * Used as the fallback when Gemini is unavailable — scores still reflect real user input.
+ */
+function deriveMaturityCategories(payload: AssessmentPayload): DiagnosisReport["maturityCategories"] {
+  const tools = payload.currentTools || [];
+  const bottleneck = payload.primaryBottleneck || "";
+  const outcome = payload.primaryOutcome || "";
+
+  // ── Website (1–5) ───────────────────────────────────────────────────────
+  let website = 1; // default: no web presence
+  if (tools.includes("ecommerce_store")) website = 4;       // active online store
+  else if (tools.includes("basic_website")) website = 3;    // static site exists
+  if (bottleneck === "website_presence") website = 1;       // they flagged it as broken
+
+  // ── Cloud (1–5) ─────────────────────────────────────────────────────────
+  let cloud = 1; // default: no cloud tools
+  if (tools.includes("cloud_backup")) cloud = 3;            // cloud backup = using cloud
+  if (payload.teamSize === "medium" || payload.teamSize === "large") cloud = Math.min(cloud + 1, 5);
+  if (bottleneck === "cybersecurity") cloud = Math.min(cloud, 1); // flagged no backup → floor 1
+
+  // ── CRM (1–5) ───────────────────────────────────────────────────────────
+  let crm = 1; // default: no CRM
+  if (tools.includes("crm_software")) crm = 4;              // actual CRM in place
+  else if (tools.includes("spreadsheets")) crm = 2;         // spreadsheets as CRM proxy
+  if (bottleneck === "lost_leads") crm = Math.min(crm, 1);  // actively losing leads → floor 1
+  if (bottleneck === "ops_workload" && tools.includes("whatsapp_only")) crm = 1;
+
+  // ── Marketing (1–5) ─────────────────────────────────────────────────────
+  let marketing = 1; // default: no marketing
+  if (tools.includes("ecommerce_store")) marketing = 3;     // marketplace = some marketing
+  if (outcome === "increase_revenue" && tools.includes("basic_website")) marketing = 3;
+  if (outcome === "scale_multi_channel") marketing = Math.max(marketing, 2);
+  if (tools.includes("crm_software")) marketing = Math.min(marketing + 1, 5); // CRM + marketing synergy
+  if (bottleneck === "retail_omnichannel") marketing = Math.min(marketing, 2); // messy = low score
+
+  // ── Cybersecurity (1–5) ──────────────────────────────────────────────────
+  let cybersecurity = 1; // default: no security posture
+  if (tools.includes("cloud_backup")) cybersecurity = 3;    // cloud backup = basic protection
+  if (tools.includes("domain_email")) cybersecurity = Math.max(cybersecurity, 2); // branded = some effort
+  if (tools.includes("free_email") && !tools.includes("domain_email")) cybersecurity = 1;
+  if (bottleneck === "cybersecurity") cybersecurity = 1;    // they flagged a real vulnerability
+
+  // ── AI Adoption (1–5) ────────────────────────────────────────────────────
+  let aiAdoption = 1; // default: no AI tools
+  if (tools.includes("crm_software") && tools.includes("cloud_backup")) aiAdoption = 3; // structured enough for AI
+  else if (tools.includes("crm_software") || tools.includes("cloud_backup")) aiAdoption = 2;
+  if (bottleneck === "ai_readiness") aiAdoption = 1;        // they want AI but clearly don't have it
+  if (outcome === "save_time" && tools.includes("crm_software")) aiAdoption = Math.min(aiAdoption + 1, 5);
+
+  return {
+    website: Math.min(5, Math.max(1, website)),
+    cloud: Math.min(5, Math.max(1, cloud)),
+    crm: Math.min(5, Math.max(1, crm)),
+    marketing: Math.min(5, Math.max(1, marketing)),
+    cybersecurity: Math.min(5, Math.max(1, cybersecurity)),
+    aiAdoption: Math.min(5, Math.max(1, aiAdoption)),
+  };
+}
+
+/**
+ * Derives deterministic 1-5 AI readiness sub-scores from assessment answers.
+ */
+function deriveAiReadiness(payload: AssessmentPayload): DiagnosisReport["aiReadiness"] {
+  const tools = payload.currentTools || [];
+  const bottleneck = payload.primaryBottleneck || "";
+  const teamSize = payload.teamSize || "solo";
+
+  // Leadership: do they have digital intent / structured goals?
+  let leadership = 2; // default: aware but passive
+  if (bottleneck === "ai_readiness") leadership = 3;        // actively seeking AI
+  if (payload.primaryOutcome === "increase_revenue" || payload.primaryOutcome === "scale_multi_channel") leadership = 3;
+  if (teamSize === "large" || teamSize === "medium") leadership = Math.min(leadership + 1, 5);
+
+  // Data availability: do they have structured data sources?
+  let dataAvailability = 1;
+  if (tools.includes("spreadsheets")) dataAvailability = 2; // at least structured in sheets
+  if (tools.includes("crm_software")) dataAvailability = 3; // CRM = clean data
+  if (tools.includes("cloud_backup")) dataAvailability = Math.max(dataAvailability, 2);
+
+  // Employee skills: proxied by tool sophistication
+  let employeeSkills = 1;
+  const advancedTools = tools.filter(t => ["crm_software", "cloud_backup", "ecommerce_store"].includes(t)).length;
+  if (advancedTools >= 2) employeeSkills = 3;
+  else if (advancedTools === 1 || tools.includes("domain_email")) employeeSkills = 2;
+
+  // Digital workflow: are processes online / structured?
+  let digitalWorkflow = 1;
+  if (tools.includes("crm_software")) digitalWorkflow = 3;
+  else if (tools.includes("basic_website") || tools.includes("ecommerce_store")) digitalWorkflow = 2;
+  if (tools.includes("whatsapp_only") && !tools.includes("crm_software")) digitalWorkflow = 1;
+
+  // Process maturity: combination signal
+  let processMaturity = 1;
+  if (tools.includes("crm_software") && tools.includes("cloud_backup")) processMaturity = 3;
+  else if (tools.includes("domain_email") && tools.includes("basic_website")) processMaturity = 2;
+  else if (tools.includes("spreadsheets")) processMaturity = 2;
+
+  return {
+    leadership: Math.min(5, Math.max(1, leadership)),
+    dataAvailability: Math.min(5, Math.max(1, dataAvailability)),
+    employeeSkills: Math.min(5, Math.max(1, employeeSkills)),
+    digitalWorkflow: Math.min(5, Math.max(1, digitalWorkflow)),
+    processMaturity: Math.min(5, Math.max(1, processMaturity)),
+  };
+}
+
+/**
  * Calculates deterministic Digital Maturity Score (0-100) based on answer parameters.
  */
 export function calculateMaturityScore(payload: AssessmentPayload): number {
@@ -303,20 +410,28 @@ export async function generateDiagnosisReport(payload: AssessmentPayload): Promi
   const followUpValue = Object.values(payload.followUpAnswers || {})[0] || "";
 
   if (payload.primaryBottleneck === "ops_workload" || followUpValue.includes("hours_") || payload.primaryOutcome === "save_time") {
-    let hoursPerWeek = 15; // default avg
+    // Map categorical team size to an average number
+    let teamSizeNum = 5;
+    if (payload.teamSize === "solo") teamSizeNum = 1;
+    if (payload.teamSize === "small") teamSizeNum = 5;
+    if (payload.teamSize === "medium") teamSizeNum = 25;
+    if (payload.teamSize === "large") teamSizeNum = 60;
+
+    // Use interactive simulator default (3.5 hrs/emp) unless they explicitly answered the hours probe
+    let hoursPerWeek = teamSizeNum * 3.5; 
     if (followUpValue === "hours_5") hoursPerWeek = 5;
     if (followUpValue === "hours_15") hoursPerWeek = 15;
     if (followUpValue === "hours_30") hoursPerWeek = 30;
 
-    const hourlyRateRM = 25; // standard Malaysian SME operational staff rate (RM 25/hr)
-    const annualHoursSaved = hoursPerWeek * 52;
-    const estimatedAnnualSavingsRM = annualHoursSaved * hourlyRateRM;
+    const hourlyRateRM = 22; // aligned with main page simulator
+    const annualHoursSaved = Math.round(hoursPerWeek * 50); // 50 weeks aligned with main page
+    const estimatedAnnualSavingsRM = Math.round(annualHoursSaved * hourlyRateRM);
 
     roiEstimate = {
       hoursSavedWeekly: hoursPerWeek,
       annualHoursSaved,
       estimatedAnnualSavingsRM,
-      calculationFormula: `${hoursPerWeek} hrs/wk × 52 weeks × RM 25/hr labor value = RM ${estimatedAnnualSavingsRM.toLocaleString()}/yr`,
+      calculationFormula: `${hoursPerWeek} hrs/wk × 50 weeks × RM 22/hr labor value = RM ${estimatedAnnualSavingsRM.toLocaleString()}/yr`,
     };
   }
 
@@ -364,21 +479,8 @@ export async function generateDiagnosisReport(payload: AssessmentPayload): Promi
       `Automate repetitive WhatsApp inquiries with dedicated agent routing.`,
       `Consolidate customer data into a central tracking pipeline.`,
     ],
-    maturityCategories: {
-      website: 3,
-      cloud: 2,
-      crm: 1,
-      marketing: 2,
-      cybersecurity: 2,
-      aiAdoption: 1,
-    },
-    aiReadiness: {
-      leadership: 3,
-      dataAvailability: 2,
-      employeeSkills: 2,
-      digitalWorkflow: 1,
-      processMaturity: 2,
-    },
+    maturityCategories: deriveMaturityCategories(payload),
+    aiReadiness: deriveAiReadiness(payload),
     isAiGenerated: false,
   };
 

@@ -67,7 +67,8 @@ body {
     radial-gradient(at 100% 0px, rgba(0, 194, 255, 0.12) 0px, transparent 450px),
     radial-gradient(at 0% 300px, rgba(0, 34, 68, 0.08) 0px, transparent 500px);
   background-repeat: no-repeat;
-  background-size: 100% 900px;
+  /* Allow gradient to cover full viewport height on all screen sizes */
+  background-size: 100% max(900px, 100vh);
 }
 
 /* Crisp grid dot pattern for Exabytes enterprise aesthetic */
@@ -80,16 +81,17 @@ body {
 /* Hero ambient spotlight glow */
 .hero-glow {
   position: absolute;
-  top: -80px;
+  top: -10%;
   left: 50%;
   transform: translateX(-50%);
-  width: 120%;
+  width: 140%;
   max-width: 1280px;
-  height: 600px;
+  /* Use min() so it scales down on narrow mobile screens */
+  height: min(600px, 80vw);
   background: radial-gradient(
     ellipse at 50% 35%,
-    rgba(0, 102, 255, 0.22) 0%,
-    rgba(0, 194, 255, 0.14) 35%,
+    rgba(0, 102, 255, 0.18) 0%,
+    rgba(0, 194, 255, 0.12) 35%,
     rgba(240, 244, 248, 0) 70%
   );
   pointer-events: none;

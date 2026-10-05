@@ -58,7 +58,7 @@ export default function RoiCalculatorPreview() {
   return (
     <div className="card p-6 sm:p-8 bg-white border border-slate-200/90 shadow-lg relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-      
+
       <div className="flex flex-col lg:flex-row gap-8 items-stretch">
         {/* Sliders Input Area */}
         <div className="lg:w-1/2 space-y-6">

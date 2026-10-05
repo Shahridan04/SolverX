@@ -100,12 +100,12 @@ export default function RootLayout({
                 </svg>
                 <span className="hidden sm:inline">Admin</span>
               </Link>
-              <Link
+              <a
                 href="/assessment"
                 className="btn-primary !py-2 !px-4 !text-[13px] font-semibold shadow-sm hover:shadow-md"
               >
                 Start Free Assessment
-              </Link>
+              </a>
             </nav>
           </div>
         </header>
